@@ -2,920 +2,818 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Alex Recovery Training</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Alex Training</title>
 <style>
-  :root {
-    --bg: #f5f6fa; --surface: #ffffff; --surface2: #f1f5f9; --surface3: #e8edf5;
-    --border: #e2e6ef; --text: #1a1d2e; --muted: #6b7280;
-    --accent: #3b5bdb; --accent-dim: #dbe4ff;
-    --green: #166534; --green-dim: #f0fdf4;
-    --red: #dc2626; --blue: #3b5bdb; --blue-dim: #dbe4ff;
-    --radius: 8px; --font: 'Inter', system-ui, sans-serif;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: var(--bg); color: var(--text); font-family: var(--font); font-size: 15px; min-height: 100vh; }
-
-  /* ── Header ── */
-  header { padding: 16px 20px 0; border-bottom: 1px solid var(--border); }
-  .header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
-  .logo { font-size: 12px; font-weight: 600; letter-spacing: 0.06em; color: var(--accent); text-transform: uppercase; }
-  .week-badge { background: var(--accent-dim); color: var(--accent); font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 20px; border: 1px solid var(--accent); }
-  nav { display: flex; }
-  .tab { background: none; border: none; color: var(--muted); font-size: 13px; font-weight: 500; padding: 8px 14px; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.15s; letter-spacing: 0.02em; }
-  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
-  .tab:hover:not(.active) { color: var(--text); }
-
-  /* ── Pages ── */
-  .page { display: none; padding: 20px; }
-  .page.active { display: block; }
-
-  /* ── Cycle overview ── */
-  .cycle-overview { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
-  .cycle-block { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px; text-align: center; }
-  .cycle-block.current { border-color: var(--accent); background: var(--accent-dim); }
-  .cycle-block .cb-phase { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
-  .cycle-block.current .cb-phase { color: var(--accent); }
-  .cycle-block .cb-weeks { font-size: 16px; font-weight: 700; margin: 4px 0; }
-  .cycle-block .cb-label { font-size: 10px; color: var(--muted); }
-
-  /* ── Phase bar ── */
-  .phase-bar { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 16px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; }
-  .phase-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
-  .phase-name { font-size: 14px; font-weight: 600; margin-top: 2px; }
-  .phase-nav { display: flex; gap: 6px; }
-  .phase-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); }
-  .phase-dot.active { background: var(--accent); }
-  .phase-dot.done { background: var(--green); }
-
-  /* ── Session buttons ── */
-  .session-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
-  .session-btn { background: var(--surface); border: 1px solid var(--border); color: var(--text); padding: 14px 8px; border-radius: var(--radius); cursor: pointer; text-align: center; transition: all 0.15s; }
-  .session-btn:hover { border-color: var(--accent); }
-  .session-btn.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
-  .session-btn .s-label { font-size: 18px; font-weight: 700; display: block; }
-  .session-btn .s-name { font-size: 11px; color: var(--muted); margin-top: 2px; display: block; }
-  .session-btn.active .s-name { color: var(--accent); opacity: 0.7; }
-
-  /* ── Week row ── */
-  .week-row { display: flex; gap: 8px; margin-bottom: 20px; }
-  .week-btn { flex: 1; background: var(--surface); border: 1px solid var(--border); color: var(--muted); padding: 8px; border-radius: var(--radius); cursor: pointer; text-align: center; transition: all 0.15s; }
-  .week-btn.active { background: var(--surface3); border-color: var(--accent); color: var(--accent); }
-  .week-btn .w-num { display: block; font-size: 16px; font-weight: 700; margin-bottom: 2px; }
-  .week-btn .w-type { display: block; font-size: 10px; }
-
-  /* ── Exercise cards ── */
-  .exercise-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 12px; overflow: hidden; }
-  .ex-header { padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
-  .ex-header-left { flex: 1; min-width: 0; }
-  .ex-title-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-  .ex-title { font-size: 14px; font-weight: 600; }
-  .info-btn { background: none; border: none; color: var(--muted); font-size: 15px; cursor: pointer; padding: 0 2px; line-height: 1; flex-shrink: 0; transition: color 0.15s; }
-  .info-btn:hover { color: var(--accent); }
-  .intensity-badge { display: inline-block; font-size: 10px; padding: 2px 8px; border-radius: 10px; flex-shrink: 0; }
-  .intensity-foundation { background: #dcfce7; color: #166534; }
-  .intensity-volume { background: #dbe4ff; color: #3b5bdb; }
-  .intensity-intensity { background: #fef9c3; color: #854d0e; }
-  .ex-meta { font-size: 11px; color: var(--muted); margin-top: 3px; }
-  .ex-progress { display: flex; align-items: center; gap: 8px; flex-shrink: 0; margin-left: 10px; }
-  .progress-bar { width: 54px; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
-  .progress-fill { height: 100%; background: var(--green); border-radius: 2px; transition: width 0.3s; }
-  .progress-text { font-size: 11px; color: var(--muted); min-width: 28px; text-align: right; }
-
-  .ex-body { padding: 0 14px 14px; border-top: 1px solid var(--border); display: none; }
-  .ex-body.open { display: block; }
-
-  /* ── Set rows ── */
-  .set-grid-prev  { display: grid; grid-template-columns: 22px minmax(0,1fr) 54px 46px minmax(0,1fr) 30px; gap: 6px; }
-  .set-grid-noprev { display: grid; grid-template-columns: 22px 54px 46px minmax(0,1fr) 30px; gap: 6px; }
-  .set-header { padding: 8px 0 4px; align-items: center; }
-  .set-header span { font-size: 10px; color: var(--muted); text-align: center; text-transform: uppercase; letter-spacing: 0.06em; }
-  .set-header .sh-prev { text-align: left; padding-left: 2px; }
-  .set-row { padding: 6px 0; border-bottom: 1px solid var(--surface3); align-items: center; }
-  .set-row:last-of-type { border-bottom: none; }
-  .set-num { font-size: 12px; color: var(--muted); text-align: center; font-weight: 600; line-height: 30px; }
-  .prev-cell { display: flex; flex-direction: column; gap: 1px; justify-content: center; min-height: 30px; padding-left: 2px; }
-  .prev-val { font-size: 11px; line-height: 1.4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .prev-val.pw1 { color: var(--green); }
-  .prev-val.pw2 { color: var(--blue); }
-  .prev-val.empty { color: var(--surface3); }
-  .set-row input { background: var(--surface2); border: 1px solid var(--border); color: var(--text); padding: 6px 4px; border-radius: 6px; font-size: 13px; width: 100%; text-align: center; height: 30px; }
-  .set-row input:focus { outline: none; border-color: var(--accent); }
-  .set-row input::placeholder { color: var(--muted); font-size: 10px; }
-  .tick-btn { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--border); background: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; color: transparent; font-size: 13px; flex-shrink: 0; }
-  .tick-btn.done { background: var(--green); border-color: var(--green); color: white; }
-  .ex-notes textarea { width: 100%; background: var(--surface2); border: 1px solid var(--border); color: var(--text); padding: 8px 10px; border-radius: 6px; font-size: 12px; resize: vertical; min-height: 48px; font-family: var(--font); margin-top: 10px; }
-  .ex-notes textarea::placeholder { color: var(--muted); }
-  .ex-notes textarea:focus { outline: none; border-color: var(--accent); }
-  .week-note { font-size: 11px; color: var(--muted); margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--surface3); }
-
-  /* ── Save / reset bar ── */
-  .save-bar { position: sticky; bottom: 0; background: var(--bg); border-top: 1px solid var(--border); padding: 12px 20px; display: none; gap: 10px; }
-  .save-btn { flex: 1; background: var(--accent); color: #ffffff; border: none; padding: 13px; border-radius: var(--radius); font-size: 14px; font-weight: 700; cursor: pointer; transition: opacity 0.15s; }
-  .save-btn:hover { opacity: 0.9; }
-  .save-btn:disabled { opacity: 0.4; cursor: default; }
-  .reset-btn { background: var(--surface2); color: var(--red); border: 1px solid var(--red); padding: 13px 16px; border-radius: var(--radius); font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: background 0.15s; }
-  .reset-btn:hover { background: #1f0f0f; }
-
-  /* ── Info modal ── */
-  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; display: none; align-items: flex-end; justify-content: center; }
-  .modal-overlay.open { display: flex; }
-  .modal { background: var(--surface); border: 1px solid var(--border); border-radius: 16px 16px 0 0; padding: 0; width: 100%; max-width: 600px; max-height: 85vh; overflow-y: auto; }
-  .modal-handle { width: 36px; height: 4px; background: var(--border); border-radius: 2px; margin: 12px auto 0; }
-  .modal-header { padding: 16px 20px 12px; border-bottom: 1px solid var(--border); }
-  .modal-title { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
-  .modal-muscle { font-size: 12px; color: var(--muted); }
-  .modal-body { padding: 16px 20px 32px; }
-  .modal-section { margin-bottom: 18px; }
-  .modal-section-label { font-size: 10px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600; margin-bottom: 8px; }
-  .modal-cues { list-style: none; display: flex; flex-direction: column; gap: 6px; }
-  .modal-cues li { font-size: 13px; color: var(--text); line-height: 1.5; padding-left: 16px; position: relative; }
-  .modal-cues li::before { content: '→'; position: absolute; left: 0; color: var(--accent); font-size: 11px; top: 1px; }
-  .modal-hernia { background: #dcfce7; border: 1px solid #86efac; border-radius: 6px; padding: 10px 12px; font-size: 12px; color: #166534; line-height: 1.5; margin-bottom: 16px; }
-  .modal-hernia strong { display: block; margin-bottom: 2px; }
-  .yt-btn { display: flex; align-items: center; gap: 10px; background: #1a1a1a; border: 1px solid #333; border-radius: var(--radius); padding: 12px 14px; text-decoration: none; color: var(--text); transition: border-color 0.15s; }
-  .yt-btn:hover { border-color: #ff0000; }
-  .yt-icon { width: 28px; height: 28px; background: #ff0000; border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-  .yt-icon svg { width: 14px; height: 14px; fill: white; }
-  .yt-text { font-size: 13px; font-weight: 500; }
-  .yt-sub { font-size: 11px; color: var(--muted); margin-top: 1px; }
-  .modal-close { position: absolute; top: 16px; right: 20px; background: var(--surface2); border: 1px solid var(--border); color: var(--muted); width: 28px; height: 28px; border-radius: 50%; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; }
-  .modal-header { position: relative; }
-
-  /* ── History ── */
-  .history-empty { text-align: center; padding: 60px 20px; color: var(--muted); }
-  .history-item { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 10px; }
-  .history-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-  .history-label { font-size: 13px; font-weight: 600; }
-  .history-date { font-size: 11px; color: var(--muted); }
-  .history-sets { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
-  .history-set { background: var(--surface3); border-radius: 4px; padding: 3px 8px; font-size: 11px; color: var(--muted); }
-
-  /* ── Settings ── */
-  .settings-row { margin-bottom: 16px; }
-  .settings-row label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
-  .settings-row input, .settings-row select { width: 100%; background: var(--surface2); border: 1px solid var(--border); color: var(--text); padding: 9px 12px; border-radius: var(--radius); font-size: 13px; }
-  .settings-row input:focus, .settings-row select:focus { outline: none; border-color: var(--accent); }
-  .settings-btn { width: 100%; background: var(--surface2); border: 1px solid var(--accent); color: var(--accent); padding: 11px; border-radius: var(--radius); font-size: 13px; font-weight: 600; cursor: pointer; margin-top: 6px; transition: background 0.15s; }
-  .settings-btn:hover { background: var(--accent-dim); }
-  .settings-section { margin-bottom: 24px; }
-  .settings-section h3 { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
-
-  /* ── Toast ── */
-  .toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); background: var(--green); color: white; padding: 10px 20px; border-radius: 20px; font-size: 13px; font-weight: 600; display: none; z-index: 300; white-space: nowrap; }
-  .toast.err { background: var(--red); }
+:root{
+  --bg:#0f1115; --card:#1a1d24; --card2:#20242e; --border:#2a2f3a;
+  --text:#eef0f3; --sub:#9aa3b2; --accent:#4fa8ff; --accent2:#3b82f6;
+  --green:#3ecf8e; --amber:#f5a623; --red:#f2545b;
+  --radius:14px;
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+body{margin:0; background:var(--bg); color:var(--text); font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; padding-bottom:130px;}
+h1,h2,h3{margin:0 0 6px;}
+.wrap{max-width:640px; margin:0 auto; padding:16px;}
+header.top{position:sticky; top:0; z-index:20; background:rgba(15,17,21,.92); backdrop-filter:blur(8px); border-bottom:1px solid var(--border);}
+.topbar{max-width:640px; margin:0 auto; padding:12px 16px; display:flex; align-items:center; justify-content:space-between;}
+.topbar .brand{font-weight:700; font-size:16px;}
+.progpicker{display:flex; gap:6px;}
+.progpicker button{background:var(--card2); border:1px solid var(--border); color:var(--sub); font-size:11px; padding:6px 8px; border-radius:8px;}
+.progpicker button.active{background:var(--accent2); color:#fff; border-color:var(--accent2);}
+.caution-banner{background:linear-gradient(90deg,rgba(245,166,35,.15),rgba(245,166,35,.05)); border:1px solid rgba(245,166,35,.4); color:#ffcf7d; font-size:12.5px; padding:10px 12px; border-radius:10px; margin:0 0 14px; display:flex; gap:8px; align-items:flex-start;}
+.caution-banner button{margin-left:auto; background:none; border:none; color:#ffcf7d; font-size:16px; padding:0 2px;}
+.card{background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:14px; margin-bottom:12px;}
+.sess-head{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:2px;}
+.sess-head .pos{color:var(--accent); font-weight:700; font-size:13px;}
+.sess-head .lbl{color:var(--sub); font-size:12px;}
+.deload-tag{display:inline-block; background:rgba(79,168,255,.15); color:var(--accent); font-size:11px; padding:2px 8px; border-radius:20px; margin-top:4px;}
+.exercise{border-top:1px solid var(--border); padding:12px 0;}
+.exercise:first-child{border-top:none; padding-top:0;}
+.ex-head{display:flex; justify-content:space-between; align-items:flex-start; gap:8px;}
+.ex-name{font-weight:600; font-size:15px;}
+.ex-name .swapped{color:var(--accent); font-size:11px; font-weight:400; display:block;}
+.ex-meta{color:var(--sub); font-size:12.5px; margin-top:2px;}
+.badge{display:inline-flex; align-items:center; gap:3px; font-size:10.5px; padding:2px 6px; border-radius:6px; margin-left:6px; vertical-align:middle;}
+.badge.caution{background:rgba(245,166,35,.18); color:var(--amber); border:1px solid rgba(245,166,35,.4);}
+.ex-actions{display:flex; gap:6px; flex-shrink:0;}
+.iconbtn{background:var(--card2); border:1px solid var(--border); color:var(--text); width:30px; height:30px; border-radius:8px; font-size:14px; display:flex; align-items:center; justify-content:center;}
+.sets{margin-top:10px; display:flex; flex-direction:column; gap:6px;}
+.setrow{display:grid; grid-template-columns:24px 1fr 1fr 32px 34px; gap:6px; align-items:center;}
+.setrow .setnum{color:var(--sub); font-size:12px; text-align:center;}
+.setrow input[type=number]{width:100%; background:var(--card2); border:1px solid var(--border); color:var(--text); border-radius:8px; padding:8px 6px; font-size:14px; text-align:center;}
+.setrow .prevref{font-size:10px; text-align:center; margin-top:2px;}
+.prevref.w1{color:var(--green);} .prevref.w2{color:var(--accent);}
+.setrow .tick{width:32px; height:32px; border-radius:8px; border:1px solid var(--border); background:var(--card2); color:var(--sub); font-size:15px;}
+.setrow .tick.done{background:var(--green); border-color:var(--green); color:#04241a;}
+.setrow .copybtn{width:34px; height:34px; border-radius:8px; border:1px solid var(--border); background:var(--card2); color:var(--accent); font-size:14px;}
+.plate{font-size:10px; color:var(--sub); grid-column:2/4; margin-top:-2px;}
+.notesfield{width:100%; margin-top:8px; background:var(--card2); border:1px solid var(--border); color:var(--text); border-radius:8px; padding:8px; font-size:12.5px; resize:vertical; min-height:32px; font-family:inherit;}
+.actionbar{display:flex; gap:10px; margin-top:16px;}
+button.primary{flex:1; background:var(--accent2); color:#fff; border:none; padding:14px; border-radius:12px; font-size:15px; font-weight:600;}
+button.secondary{background:var(--card2); color:var(--sub); border:1px solid var(--border); padding:14px; border-radius:12px; font-size:14px;}
+.tabs{position:fixed; bottom:0; left:0; right:0; background:rgba(20,22,28,.97); backdrop-filter:blur(10px); border-top:1px solid var(--border); display:flex; z-index:30; padding-bottom:env(safe-area-inset-bottom);}
+.tabs button{flex:1; background:none; border:none; color:var(--sub); padding:12px 4px 10px; font-size:11px; display:flex; flex-direction:column; align-items:center; gap:3px;}
+.tabs button .ic{font-size:19px;}
+.tabs button.active{color:var(--accent);}
+.page{display:none;} .page.active{display:block;}
+.field{margin-bottom:14px;}
+.field label{display:block; font-size:12.5px; color:var(--sub); margin-bottom:6px;}
+.field input[type=text],.field input[type=url],.field select{width:100%; background:var(--card2); border:1px solid var(--border); color:var(--text); border-radius:10px; padding:11px; font-size:14px;}
+.toggle-row{display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-top:1px solid var(--border);}
+.toggle-row:first-of-type{border-top:none;}
+.switch{position:relative; width:44px; height:26px; background:var(--card2); border:1px solid var(--border); border-radius:20px;}
+.switch.on{background:var(--accent2); border-color:var(--accent2);}
+.switch .knob{position:absolute; top:2px; left:2px; width:20px; height:20px; background:#fff; border-radius:50%; transition:.15s;}
+.switch.on .knob{left:20px;}
+.histitem{border-bottom:1px solid var(--border); padding:12px 0;}
+.histitem:last-child{border-bottom:none;}
+.histitem .hh{display:flex; justify-content:space-between; font-size:13px; color:var(--sub); margin-bottom:6px;}
+.histitem .hh b{color:var(--text);}
+.histrow{display:flex; justify-content:space-between; font-size:13px; padding:3px 0;}
+.muscletally{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:10px;}
+.mtile{background:var(--card2); border:1px solid var(--border); border-radius:10px; padding:8px 10px;}
+.mtile .mname{font-size:11px; color:var(--sub); text-transform:capitalize;}
+.mtile .mval{font-size:16px; font-weight:700; margin-top:2px;}
+.mtile .mval.low{color:var(--sub);} .mtile .mval.ok{color:var(--green);} .mtile .mval.high{color:var(--amber);}
+.mbar{height:4px; background:var(--border); border-radius:4px; margin-top:6px; overflow:hidden;}
+.mbar i{display:block; height:100%; background:var(--accent2);}
+.lifttrend{margin-top:8px;}
+.lifttrend .lt-head{display:flex; justify-content:space-between; font-size:13px; margin-bottom:4px;}
+.lifttrend .lt-head b{font-weight:600;}
+.lifttrend .lt-head span{color:var(--green); font-weight:700;}
+.spark{width:100%; height:34px; display:block;}
+.toast{position:fixed; bottom:100px; left:16px; right:16px; max-width:608px; margin:0 auto; background:var(--card2); border:1px solid var(--accent2); color:var(--text); padding:12px 14px; border-radius:12px; font-size:13.5px; z-index:60; box-shadow:0 8px 24px rgba(0,0,0,.4); opacity:0; transform:translateY(10px); transition:.25s;}
+.toast.show{opacity:1; transform:translateY(0);}
+.modal-overlay{position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:50; display:none; align-items:flex-end;}
+.modal-overlay.show{display:flex;}
+.modal{background:var(--card); border-radius:20px 20px 0 0; padding:20px; max-width:640px; margin:0 auto; width:100%; max-height:82vh; overflow-y:auto;}
+.modal h3{font-size:17px;}
+.modal .close{float:right; background:var(--card2); border:none; color:var(--text); width:30px; height:30px; border-radius:8px; font-size:16px;}
+.cuelist{margin:12px 0; padding-left:18px; font-size:13.5px; color:var(--text); line-height:1.7;}
+.videolink{display:flex; align-items:center; gap:10px; background:var(--card2); border:1px solid var(--border); border-radius:10px; padding:10px 12px; margin-top:6px; color:var(--accent); text-decoration:none; font-size:13px;}
+.subbox{background:rgba(79,168,255,.08); border:1px solid rgba(79,168,255,.3); border-radius:10px; padding:10px 12px; margin-top:10px; font-size:13px;}
+.cautionbox{background:rgba(245,166,35,.1); border:1px solid rgba(245,166,35,.35); border-radius:10px; padding:10px 12px; margin-top:10px; font-size:13px; color:#ffcf7d;}
+.plate-calc-row{margin-top:6px; font-size:11px; color:var(--sub);}
+.small{font-size:12px; color:var(--sub);}
+.progselect{width:100%; background:var(--card2); border:1px solid var(--border); color:var(--text); border-radius:10px; padding:11px; font-size:14px; margin-bottom:12px;}
+.danger{color:var(--red);}
+a{color:var(--accent);}
+.overview-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin-top:10px;}
+.overview-grid .cell{background:var(--card2); border:1px solid var(--border); border-radius:8px; padding:6px 4px; text-align:center; font-size:10.5px; color:var(--sub);}
+.overview-grid .cell.cur{background:var(--accent2); color:#fff; border-color:var(--accent2);}
+.overview-grid .cell.deload{background:rgba(245,166,35,.15); color:var(--amber); border-color:rgba(245,166,35,.4);}
 </style>
 </head>
 <body>
 
-<header>
-  <div class="header-top">
-    <div class="logo">Alex Recovery Training</div>
-    <div id="weekBadge" class="week-badge">Week 1 of 9</div>
+<header class="top">
+  <div class="topbar">
+    <div class="brand">💪 Alex Training</div>
+    <div class="progpicker" id="progPicker"></div>
   </div>
-  <nav>
-    <button class="tab active" onclick="showPage('train',this)">Train</button>
-    <button class="tab" onclick="showPage('history',this)">History</button>
-    <button class="tab" onclick="showPage('settings',this)">Settings</button>
-  </nav>
 </header>
 
-<div id="toast" class="toast"></div>
+<div class="wrap">
 
-<!-- Exercise info modal -->
-<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
-  <div class="modal" id="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-header">
-      <div class="modal-title" id="modalTitle"></div>
-      <div class="modal-muscle" id="modalMuscle"></div>
-      <button class="modal-close" onclick="closeModalDirect()">✕</button>
+  <!-- TRAIN -->
+  <div class="page active" id="page-train">
+    <div class="caution-banner" id="cautionBanner" style="display:none">
+      <span>⚠️</span>
+      <span>Some lifts are flagged for heavy bracing / loading. This is a general flag, not medical advice — check with your surgeon or physio if you're ever unsure about a movement given your hernia repair.</span>
+      <button onclick="dismissCautionBanner()">✕</button>
     </div>
-    <div class="modal-body" id="modalBody"></div>
+    <div id="trainContent"></div>
   </div>
-</div>
 
-<!-- TRAIN -->
-<div id="page-train" class="page active">
-  <div class="cycle-overview" id="cycleOverview"></div>
-  <div class="phase-bar">
-    <div>
-      <div class="phase-label">Current phase</div>
-      <div class="phase-name" id="phaseName"></div>
+  <!-- PROGRESS -->
+  <div class="page" id="page-progress">
+    <h2>Progress</h2>
+    <div class="card">
+      <h3>This week's volume</h3>
+      <p class="small">Sets logged this week per muscle group, vs. the programme's 10–15 sets/week guideline. Grouping is approximate — for general tracking, not exact science.</p>
+      <div class="muscletally" id="muscleTally"></div>
     </div>
-    <div class="phase-nav" id="phaseDots"></div>
-  </div>
-  <div class="session-grid">
-    <button class="session-btn active" onclick="selectSession('A')" id="btn-A">
-      <span class="s-label">A</span><span class="s-name">Upper Push/Pull</span>
-    </button>
-    <button class="session-btn" onclick="selectSession('B')" id="btn-B">
-      <span class="s-label">B</span><span class="s-name">Lower Body</span>
-    </button>
-    <button class="session-btn" onclick="selectSession('C')" id="btn-C">
-      <span class="s-label">C</span><span class="s-name">Full Body</span>
-    </button>
-  </div>
-  <div class="week-row" id="weekRow"></div>
-  <div id="exerciseList"></div>
-  <div style="height:90px"></div>
-</div>
-
-<div class="save-bar" id="saveBar">
-  <button class="reset-btn" onclick="confirmReset()">Reset</button>
-  <button class="save-btn" id="saveBtn" onclick="saveSession()">Save session</button>
-</div>
-
-<!-- HISTORY -->
-<div id="page-history" class="page">
-  <div id="historyList"></div>
-</div>
-
-<!-- SETTINGS -->
-<div id="page-settings" class="page">
-  <div class="settings-section">
-    <h3>Your details</h3>
-    <div class="settings-row">
-      <label>Name</label>
-      <input type="text" id="settingsName" placeholder="Alex">
+    <div class="card">
+      <h3>Estimated 1RM trend</h3>
+      <p class="small">Calculated from your logged sets using the Epley formula. Only shows lifts you've logged at least twice.</p>
+      <div id="liftTrends"></div>
     </div>
   </div>
-  <div class="settings-section">
-    <h3>Google Sheets sync</h3>
-    <div class="settings-row">
-      <label>Apps Script Web App URL</label>
-      <input type="url" id="sheetsUrl" placeholder="https://script.google.com/macros/s/...">
+
+  <!-- HISTORY -->
+  <div class="page" id="page-history">
+    <h2>History</h2>
+    <div class="card" id="historyList"></div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="page" id="page-settings">
+    <h2>Settings</h2>
+    <div class="card">
+      <div class="field">
+        <label>Name</label>
+        <input type="text" id="setName" placeholder="Your name">
+      </div>
+      <div class="field">
+        <label>Apps Script Web App URL (Google Sheets sync)</label>
+        <input type="url" id="setSheetsUrl" placeholder="https://script.google.com/macros/...">
+      </div>
+      <button class="primary" onclick="saveSettings()">Save</button>
     </div>
-    <button class="settings-btn" onclick="saveSettings()">Save settings</button>
-  </div>
-  <div class="settings-section">
-    <h3>Programme position</h3>
-    <div class="settings-row">
-      <label>Overall week (1–9)</label>
-      <select id="overallWeek" onchange="updateWeekFromSettings()">
-        <option value="1">Week 1 — Phase 1, Foundation</option>
-        <option value="2">Week 2 — Phase 1, Volume</option>
-        <option value="3">Week 3 — Phase 1, Intensity</option>
-        <option value="4">Week 4 — Phase 2, Foundation</option>
-        <option value="5">Week 5 — Phase 2, Volume</option>
-        <option value="6">Week 6 — Phase 2, Intensity</option>
-        <option value="7">Week 7 — Phase 3, Foundation</option>
-        <option value="8">Week 8 — Phase 3, Volume</option>
-        <option value="9">Week 9 — Phase 3, Intensity</option>
-      </select>
+
+    <div class="card">
+      <h3>Active programme</h3>
+      <select class="progselect" id="setProgramSelect" onchange="switchProgram(this.value)"></select>
+      <div id="progOverview"></div>
     </div>
-    <button class="settings-btn" onclick="advanceWeek()">Advance to next week →</button>
+
+    <div class="card">
+      <div class="toggle-row">
+        <div>
+          <div>Deload weeks</div>
+          <div class="small">Adds a lighter week after each 4-week block (reduced RPE target, drop a set if it feels like a lot).</div>
+        </div>
+        <div class="switch" id="deloadSwitch" onclick="toggleDeload()"><div class="knob"></div></div>
+      </div>
+      <div class="toggle-row">
+        <div>
+          <div>Caution flags</div>
+          <div class="small">Show ⚠️ badges on high-bracing/loading lifts.</div>
+        </div>
+        <div class="switch" id="cautionSwitch" onclick="toggleCaution()"><div class="knob"></div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Manually set position</h3>
+      <p class="small">Overrides the current programme's week and day.</p>
+      <div class="field">
+        <label>Week</label>
+        <select class="progselect" id="setWeekSelect"></select>
+      </div>
+      <div class="field">
+        <label>Day</label>
+        <select class="progselect" id="setDaySelect"></select>
+      </div>
+      <button class="secondary" onclick="applyManualPosition()">Set position</button>
+    </div>
+
+    <div class="card">
+      <button class="secondary" style="width:100%; margin-bottom:10px;" onclick="exportData()">Export data as JSON</button>
+      <button class="secondary danger" style="width:100%;" onclick="clearAllData()">Clear all local data</button>
+    </div>
   </div>
-  <div class="settings-section">
-    <h3>9-week cycle overview</h3>
-    <div id="settingsCycleOverview"></div>
-  </div>
-  <div class="settings-section">
-    <h3>Data</h3>
-    <button class="settings-btn" onclick="exportData()" style="margin-bottom:8px">Export all data (JSON)</button>
-    <button class="settings-btn" onclick="if(confirm('Clear ALL local data? This cannot be undone.')){localStorage.clear();location.reload()}" style="border-color:var(--red);color:var(--red)">Clear all local data</button>
-  </div>
+
 </div>
+
+<div class="tabs">
+  <button class="active" data-tab="train" onclick="showTab('train')"><span class="ic">🏋️</span>Train</button>
+  <button data-tab="progress" onclick="showTab('progress')"><span class="ic">📈</span>Progress</button>
+  <button data-tab="history" onclick="showTab('history')"><span class="ic">📜</span>History</button>
+  <button data-tab="settings" onclick="showTab('settings')"><span class="ic">⚙️</span>Settings</button>
+</div>
+
+<div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this) closeModal()">
+  <div class="modal" id="modalBody"></div>
+</div>
+
+<div class="toast" id="toast"></div>
 
 <script>
-// ── Exercise database ────────────────────────────────────────────────────────
-// Each exercise has: name, target, muscle, hernia (bool), cues[], yt{url,channel,title}
+/* ============ EXERCISE MASTER DATA ============ */
+const EX = {
+"Back Squat": {muscle:"quads", cue:"Sit back and down, 15° toe flare, drive your knees out laterally.", video:{url:"https://www.youtube.com/watch?v=dW5-C1fsMjk",title:"Back Squat Technique"}, sub:"Leg Press + 15 reps of lower back extensions", caution:"Heavy axial-loading compound lift with hard bracing — check in with your surgeon/physio on load before pushing this hard."},
+"Goblet Squat": {muscle:"quads", cue:"Hold a dumbbell directly underneath your chin, sit back and down, push your knees out laterally.", video:{url:"https://www.youtube.com/watch?v=zBV3ceGyAxw",title:"Goblet Squat (PureGym)"}, sub:null, caution:"Loaded squat pattern — lighter bracing demand than Back Squat, but still worth being mindful of."},
+"Deadlift": {muscle:"hamstrings", cue:"Brace your lats, chest tall, hips high, pull the slack out of the bar prior to moving it off the ground.", video:{url:"https://www.youtube.com/watch?v=fc4_hq7tjkU",title:"Deadlift Technique"}, sub:"Barbell Hip Thrust + 15 reps of lower back extensions", caution:"Heavy axial-loading compound lift with hard bracing — check in with your surgeon/physio on load before pushing this hard."},
+"Romanian Deadlift": {muscle:"hamstrings", cue:"Maintain a neutral lower back, set your hips back, don't allow your spine to round.", video:{url:"https://www.youtube.com/watch?v=SE-2Y-3a1pY",title:"Romanian Deadlift Technique"}, sub:"Glute Ham Raise", caution:"Loaded hip-hinge — moderate bracing demand, watch for any spinal rounding under fatigue."},
+"Barbell Hip Thrust": {muscle:"glutes", cue:"Tuck your chin and rib cage down, only move your hips. Use a pad.", video:{url:"https://www.youtube.com/watch?v=RjWiwq1wgFg",title:"Barbell Hip Thrust Technique"}, sub:"Leg Extension Machine Hip Thrust", caution:"Heavy loaded hip extension with a bar across the hips/lower abdomen — worth checking comfort here specifically."},
+"Dumbbell Single-Leg Hip Thrust": {muscle:"glutes", cue:"Place the dumbbell on your working thigh, tuck your chin and rib cage down, only move your hips.", video:{url:"https://www.youtube.com/watch?v=1u-b25VJVFU",title:"Single-Leg Hip Thrust (PureGym)"}, sub:null, caution:null},
+"Leg Extension": {muscle:"quads", cue:"Focus on squeezing your quads to make the weight move.", video:{url:"https://www.youtube.com/watch?v=1CHV0-armIc",title:"Leg Extension Technique"}, sub:"Not mandatory for quad growth — simply remove from the programme if unable to perform", caution:null},
+"Single-Leg Leg Extension": {muscle:"quads", cue:"Focus on squeezing your quads to make the weight move.", video:{url:"https://www.youtube.com/watch?v=3VIpG6rtFAc",title:"Single-Leg Leg Extension Technique"}, sub:null, caution:null},
+"Leg Press": {muscle:"quads", cue:"Medium feet placement on the platform, don't allow your lower back to round.", video:{url:"https://www.youtube.com/watch?v=qCR9bN3G1t4",title:"Seated Leg Press (PureGym)"}, sub:null, caution:null},
+"Lying Leg Curl": {muscle:"hamstrings", cue:"Focus on squeezing your hamstrings to make the weight move.", video:{url:"https://www.youtube.com/watch?v=1Tq3QdYUuHs",title:"Lying Leg Curl Technique"}, sub:"Dumbbell Leg Curl (place a dumbbell between your legs, lie on a bench, curl it up)", caution:null},
+"Single-Leg Lying Leg Curl": {muscle:"hamstrings", cue:"Focus on squeezing your hamstrings to make the weight move.", video:{url:"https://www.youtube.com/watch?v=lQSlJHtsnRA",title:"Single-Leg Lying Leg Curl Technique"}, sub:null, caution:null},
+"Seated Leg Curl": {muscle:"hamstrings", cue:"Focus on squeezing your hamstrings to make the weight move.", video:{url:"https://www.youtube.com/watch?v=ELOCsoDSmrg",title:"Seated Leg Curl (ScottHermanFitness)"}, sub:null, caution:null},
+"Dumbbell Walking Lunge": {muscle:"quads", cue:"Take medium strides, let your torso lean forward.", video:{url:"https://www.youtube.com/watch?v=vni4lElTvsY",title:"DB Walking Lunge Technique"}, sub:"Single Leg Dumbbell Hip Thrust", caution:null},
+"Standing Calf Raise": {muscle:"calves", cue:"Press all the way up to your toes, stretch your calves at the bottom, don't bounce.", video:{url:"https://www.youtube.com/watch?v=7AVIgDN72c0",title:"Standing Calf Raise Technique"}, sub:"Dumbbell Standing Calf Raise (hold a dumbbell in one hand, other hand for balance)", caution:null},
+"Machine Seated Hip Abduction": {muscle:"glutes", cue:"Keep your butt in the seat, focus on squeezing your glutes to make the weight move.", video:{url:"https://www.youtube.com/watch?v=eKfVJ0YM8lY",title:"Seated Hip Abduction Technique"}, sub:"Standing Cable Hip Abduction, or Plate-Loaded Hip Abduction", caution:null},
+"Crunch": {muscle:"core", cue:"Focus on flexing your spine, don't yank your head with your arms.", video:{url:"https://www.youtube.com/watch?v=NGRKFMKhF8s",title:"Crunch Technique"}, sub:null, caution:"Direct loaded core-flexion work — stop if you feel any pulling, straining or discomfort at the repair site."},
+"Bicycle Crunch": {muscle:"core", cue:"Focus on flexing and rotating your spine, bring your left elbow to right knee, right elbow to left knee.", video:{url:"https://www.youtube.com/watch?v=wnuLak2onoA",title:"Bicycle Crunch (PureGym)"}, sub:null, caution:"Loaded core flexion + rotation — stop if you feel any pulling, straining or discomfort at the repair site."},
+"Hanging Leg Raise": {muscle:"core", cue:"Focus on flexing your lower back, perform off of Captain's Chair.", video:{url:"https://www.youtube.com/watch?v=Yrtvs-nEnk0",title:"Hanging Leg Raise (PureGym)"}, sub:null, caution:"Hanging core-flexion work under load — stop if you feel any pulling, straining or discomfort at the repair site."},
+"Plank": {muscle:"core", cue:"Squeeze your glutes, keep your hips low.", video:{url:"https://www.youtube.com/watch?v=kL_NJAkCQBg",title:"Plank Technique"}, sub:null, caution:"Isometric core bracing — generally lower-risk than loaded flexion, but ease in and stop if uncomfortable."},
+"Barbell Bench Press": {muscle:"chest", cue:"Tuck elbows at a 45° angle, squeeze your shoulder blades and stay firm on the bench.", video:{url:"https://www.youtube.com/watch?v=esQi683XR44",title:"Barbell Bench Press Technique"}, sub:"Dumbbell Bench Press or Hammer Strength Machine Press", caution:null},
+"Close-Grip Bench Press": {muscle:"triceps", cue:"Shoulder width grip, tuck your elbows against your sides.", video:{url:"https://www.youtube.com/watch?v=DzA2xZhDGeo",title:"Close-Grip Bench Press (PureGym)"}, sub:null, caution:"Heavy bracing under a loaded bar — moderate caution, similar to standard bench."},
+"Dumbbell Incline Press": {muscle:"chest", cue:"Keep your scapulae retracted and depressed.", video:{url:"https://www.youtube.com/watch?v=8iPEnn-ltC8",title:"DB Incline Press Technique"}, sub:"Hammer Strength Machine Incline Press", caution:null},
+"Dumbbell Floor Press": {muscle:"chest", cue:"Tuck your elbows against your sides.", video:{url:"https://www.youtube.com/watch?v=T0Y3OBF1bNI",title:"DB Floor Press (PureGym)"}, sub:null, caution:null},
+"Cable Flye": {muscle:"chest", cue:"Keep your scapulae retracted, pull your inner elbows together (not your hands).", video:{url:"https://www.youtube.com/watch?v=KJwiu8ttuZ0",title:"Cable Flye Technique"}, sub:"Dumbbell Fly or Pec Deck", caution:null},
+"Pec Deck": {muscle:"chest", cue:"Keep your scapulae retracted, pull your inner elbows together (not your hands).", video:{url:"https://www.youtube.com/watch?v=eGjt4lk6g34",title:"Pec Deck / Chest Fly Machine (PureGym)"}, sub:null, caution:null},
+"Machine Incline Chest Press": {muscle:"chest", cue:"Keep your scapulae retracted and depressed.", video:{url:"https://www.youtube.com/watch?v=ig0NyNlSce4",title:"Incline Chest Press Machine (ScottHermanFitness)"}, sub:null, caution:null},
+"Assisted Dip": {muscle:"chest", cue:"Tuck elbows at a 45° angle, lean your torso forward 15°.", video:{url:"https://www.youtube.com/watch?v=wjUmnZH528Y",title:"Assisted Dip Technique"}, sub:"Decline Dumbbell/Barbell/Hammer Strength Press", caution:null},
+"Dumbbell Skull Crusher": {muscle:"triceps", cue:"Keep your elbows in line with the top of your head, don't let your upper arm move.", video:{url:"https://www.youtube.com/watch?v=ZUZOn9c1VVI",title:"DB Skull Crusher Technique"}, sub:null, caution:null},
+"Single-Arm Rope Tricep Extension": {muscle:"triceps", cue:"Pull your arm behind your torso, don't move your upper arm.", video:{url:"https://www.youtube.com/watch?v=FxK2mF0iPXs",title:"Rope Tricep Extension Technique"}, sub:null, caution:null},
+"Cable Tricep Kickback": {muscle:"triceps", cue:"Keep your elbows behind your torso, don't let your upper arm move.", video:{url:"https://www.youtube.com/watch?v=0iyTw2wnvUU",title:"Cable Tricep Kickback (Seriously Strong Training)"}, sub:null, caution:null},
+"Lat Pulldown": {muscle:"back", cue:"Pull your elbows straight out to your sides, use a 1.5x shoulder width grip.", video:{url:"https://www.youtube.com/watch?v=apzFTbsm7HU",title:"Lat Pulldown Technique"}, sub:"Reverse Grip Assisted Pullup", caution:null},
+"Reverse Grip Lat Pulldown": {muscle:"back", cue:"Pull your elbows down against your sides, use shoulder width grip.", video:{url:"https://www.youtube.com/watch?v=SNiwpA13ZLU",title:"Reverse Grip Lat Pulldown (PureGym)"}, sub:null, caution:null},
+"Neutral-Grip Pulldown": {muscle:"back", cue:"Palms facing each other. Pull your elbows against your sides.", video:{url:"https://www.youtube.com/watch?v=KgZqDuNx7rI",title:"Neutral Grip Lat Pulldown (Physique Development)"}, sub:null, caution:null},
+"Single-Arm Pulldown": {muscle:"back", cue:"Start with your non-dominant arm, match reps with dominant arm.", video:{url:"https://www.youtube.com/watch?v=LPahgWM7eUU",title:"Single-Arm Lat Pulldown (PureGym)"}, sub:null, caution:null},
+"Chest-Supported T-Bar Row": {muscle:"back", cue:"Retract your scapulae during the concentric, protract your scapulae during the eccentric.", video:{url:"https://www.youtube.com/watch?v=w0KnlQ-b7jw",title:"T-Bar Row Technique"}, sub:"Chest-Supported Dumbbell Row (brace upper chest against incline bench, row two dumbbells simultaneously)", caution:null},
+"Cable Seated Row": {muscle:"back", cue:"Use a V-bar grip, let your scapulae protract during the eccentric.", video:{url:"https://www.youtube.com/watch?v=4mRy8U542Fo",title:"Cable Seated Row Technique"}, sub:"1-Arm Dumbbell Row", caution:null},
+"Dumbbell Row": {muscle:"back", cue:"Brace onto a bench for support, pull your elbow against your sides.", video:{url:"https://www.youtube.com/watch?v=ZRSGpBUVcNw",title:"Single-Arm Dumbbell Row (PureGym)"}, sub:null, caution:null},
+"Barbell Bent Over Row": {muscle:"back", cue:"Lean your torso over at a 45° angle, keep your lower back neutral, double overhand grip.", video:{url:"https://www.youtube.com/watch?v=axoeDmW0oAY",title:"Perfect Rowing Technique (Jeff Nippard)"}, sub:null, caution:"Loaded bent-over position under load with real bracing demand — worth being mindful of."},
+"Seated Face Pull": {muscle:"shoulders", cue:"Pull your arms back and out.", video:{url:"https://www.youtube.com/watch?v=HSoHeSjvIdY",title:"Face Pull Technique"}, sub:null, caution:null},
+"Cable Reverse Flye": {muscle:"shoulders", cue:"Protract your scapulae, sweep the weight out and back.", video:{url:"https://www.youtube.com/watch?v=QnXb1dh_RjQ",title:"Cable Reverse Fly Technique"}, sub:null, caution:null},
+"Reverse Pec Deck": {muscle:"shoulders", cue:"Protract your scapulae, sweep the weight out and back.", video:{url:"https://www.youtube.com/watch?v=ON8kg47QpOY",title:"Reverse Pec Deck (Life Fitness/Hammer Strength)"}, sub:null, caution:null},
+"Dumbbell Bent Over Lateral Raise": {muscle:"shoulders", cue:"Lean over such that your torso is parallel with the ground, raise your arms directly out to your sides.", video:{url:"https://www.youtube.com/watch?v=ttvfGg9d76c",title:"DB Bent-Over Raise (ScottHermanFitness)"}, sub:null, caution:null},
+"Military Press": {muscle:"shoulders", cue:"Squeeze your glutes to keep your torso upright, clear your head out of the way, press up and slightly back.", video:{url:"https://www.youtube.com/watch?v=CnBmiBqp-AI",title:"Military Press Technique"}, sub:"Standing Dumbbell Shoulder Press", caution:"Overhead pressing needs full-torso bracing under load — go carefully and stop if you feel any pulling or strain."},
+"Dumbbell Seated Shoulder Press": {muscle:"shoulders", cue:"Bring the dumbbell all the way down to your shoulders, keep your torso upright.", video:{url:"https://www.youtube.com/watch?v=TsduLWuhlFM",title:"Seated Shoulder Press (PureGym)"}, sub:null, caution:"Overhead pressing needs full-torso bracing under load — go carefully and stop if you feel any pulling or strain."},
+"Dumbbell Lateral Raise": {muscle:"shoulders", cue:"Tilt the dumbbell such that your pinky comes up first.", video:{url:"https://www.youtube.com/watch?v=6m7JO28RqZg",title:"DB Lateral Raise Technique"}, sub:null, caution:null},
+"Cable Lateral Raise": {muscle:"shoulders", cue:"Lean away from the machine, arms straight out to your side.", video:{url:"https://www.youtube.com/watch?v=Z5FA9aq3L6A",title:"Cable Lateral Raise (PureGym)"}, sub:null, caution:null},
+"Dumbbell Supinated Curl": {muscle:"biceps", cue:"Drive your pinky into the handle harder than your pointer finger.", video:{url:"https://www.youtube.com/watch?v=ykJmrZ5v0Oo",title:"DB Supinated Curl Technique"}, sub:null, caution:null},
+"Hammer Curl": {muscle:"biceps", cue:"Neutral grip, prevent your upper arm from moving.", video:{url:"https://www.youtube.com/watch?v=B4RznoFvTl4",title:"Hammer Curl (PureGym)"}, sub:null, caution:null},
+"EZ Bar Curl": {muscle:"biceps", cue:"Press your pinky into the bar harder than your pointer finger.", video:{url:"https://www.youtube.com/watch?v=d2r5TCqnR4Y",title:"EZ Bar Curl (ATHLEAN-X)"}, sub:null, caution:null},
+"Single-Arm Cable Curl": {muscle:"biceps", cue:"Face away from the cable you are using, keep your arm behind your torso.", video:{url:"https://www.youtube.com/watch?v=njLoCel5lUI",title:"Single-Arm Cable Curl"}, sub:null, caution:null},
+};
 
-const PHASES = [
-  {
-    id:1, name:"Phase 1 — Foundation movements", desc:"Compound-first, 3 sets, build the pattern",
-    sessions:{
-      A:[
-        { name:"Barbell bench press", target:"3×8–10", muscle:"Chest / triceps",
-          cues:["Retract your shoulder blades and drive them into the bench","Lower the bar to your lower chest — bar path is diagonal, not straight down","Grip just outside shoulder-width; imagine bending the bar apart as you press","Keep forearms vertical when the bar touches your chest"],
-          yt:{url:"https://www.youtube.com/watch?v=4Y2ZdHCOXok",channel:"Jeff Nippard",title:"How to bench press for growth (5 steps)"} },
-        { name:"Cable row (seated)", target:"3×10–12", muscle:"Back / biceps",
-          cues:["Sit tall — don't hinge back to generate momentum","Pull the handle to your lower sternum, elbows close to your sides","Pause briefly at full contraction, then control the return","Feel your shoulder blades fully retract at the top"],
-          yt:{url:"https://www.youtube.com/watch?v=GZbfZ033f74",channel:"Athlean-X",title:"Seated cable row — perfect form"} },
-        { name:"Dumbbell shoulder press", target:"3×10", muscle:"Shoulders",
-          cues:["Start with dumbbells at ear height, elbows at 90°","Press straight up and slightly together at the top — don't lock out hard","Lower under control to feel a shoulder stretch at the bottom","Keep your core braced; avoid excessive lower back arch"],
-          yt:{url:"https://www.youtube.com/watch?v=qEwKCR5JCog",channel:"Jeff Nippard",title:"Dumbbell shoulder press — proper form"} },
-        { name:"Lat pulldown", target:"3×10–12", muscle:"Lats",
-          cues:["Grip just outside shoulder-width, lean back slightly (~15°)","Think 'pull elbows to your back pockets', not 'pull bar down'","Pause with bar at chin level and squeeze your lats","Control the ascent — don't let the weight pull your arms up fast"],
-          yt:{url:"https://www.youtube.com/watch?v=CAwf7n6Luuc",channel:"Athlean-X",title:"Lat pulldown — how to do it right"} },
-        { name:"Dumbbell curl", target:"3×12", muscle:"Biceps",
-          cues:["Keep upper arms pinned against your sides throughout","Supinate (rotate palm up) as you curl for peak contraction","Lower slowly — 2–3 seconds on the way down","Avoid swinging; if you need momentum the weight's too heavy"],
-          yt:{url:"https://www.youtube.com/watch?v=in5h6EO8sNY",channel:"Jeff Nippard",title:"How to curl for bigger biceps"} },
-        { name:"Tricep pushdown", target:"3×12", muscle:"Triceps",
-          cues:["Lock elbows at your sides — they should not move during the rep","Push the bar/rope down to full extension and squeeze hard","Control the return — don't let the stack pull your elbows up","Rope version: flare handles out at the bottom for extra contraction"],
-          yt:{url:"https://www.youtube.com/watch?v=2-LAMcpzODU",channel:"Jeff Nippard",title:"Tricep pushdown — complete guide"} },
-      ],
-      B:[
-        { name:"Goblet squat", target:"3×10–12", muscle:"Quads / glutes", hernia:true,
-          cues:["Hold a dumbbell or kettlebell at chest height close to your body","Push your knees out in line with your toes as you descend","Squat to parallel or just below — hips crease below knees","Keep your chest up; don't let the weight pull you forward"],
-          yt:{url:"https://www.youtube.com/watch?v=MeIiIdhvXT4",channel:"Alan Thrall",title:"How to goblet squat"} },
-        { name:"Romanian deadlift (light)", target:"3×10", muscle:"Hamstrings / glutes", hernia:true,
-          cues:["Hinge at the hips — soft bend in knees, spine stays neutral","Lower the bar down your shins until you feel a hamstring stretch","Drive hips forward to stand — squeeze glutes at the top","Keep the bar close to your body throughout the movement"],
-          yt:{url:"https://www.youtube.com/watch?v=JCXUYuzwNrM",channel:"Alan Thrall",title:"Romanian deadlift — technique guide"} },
-        { name:"Leg press", target:"3×12", muscle:"Quads", hernia:true,
-          cues:["Place feet mid-to-high on the platform to reduce lower back stress","Lower until knees reach ~90° — don't crush your lower back at the bottom","Push through your whole foot, not just the toes","Keep lower back pressed into the pad throughout"],
-          yt:{url:"https://www.youtube.com/watch?v=IZxyjW7MPJQ",channel:"Jeff Nippard",title:"Leg press — how to do it properly"} },
-        { name:"Lying leg curl", target:"3×12", muscle:"Hamstrings",
-          cues:["Lie face down; pad sits just above your heels","Curl heels to your glutes and hold the top for 1 second","Lower slowly — 3 seconds down for maximum stimulus","Keep hips pressed into the pad; don't let them lift"],
-          yt:{url:"https://www.youtube.com/watch?v=1Tq3QdYUuHs",channel:"Athlean-X",title:"Leg curl — tips for better hamstrings"} },
-        { name:"Calf raise (seated)", target:"3×15", muscle:"Calves",
-          cues:["Full range of motion is key — stretch at the bottom, full rise at the top","Slow tempo: 2 seconds up, 1 second hold, 3 seconds down","Don't bounce out of the bottom — that negates the stimulus","Use a full range of motion; partial reps cheat your calves"],
-          yt:{url:"https://www.youtube.com/watch?v=JbyjNymZOt0",channel:"Jeff Nippard",title:"Calf training — full guide"} },
-        { name:"Hip abductor machine", target:"3×15", muscle:"Glutes / abductors", hernia:true,
-          cues:["Sit tall with lower back supported against the pad","Push your knees outward with a controlled, deliberate movement","Pause at the widest point for a glute squeeze","Control the return — don't let the pads slam back together"],
-          yt:{url:"https://www.youtube.com/watch?v=Ym7_ZF-5J2c",channel:"ScottHermanFitness",title:"Hip abductor machine — proper form"} },
-      ],
-      C:[
-        { name:"Dumbbell floor press", target:"3×10", muscle:"Chest", hernia:true,
-          cues:["Lie on the floor; the floor limits range of motion naturally — this is the point","Keep your upper arms at ~45° to your torso, not flared 90°","Press to lockout, then lower until triceps touch the floor and pause","A safer chest option post-hernia repair — no deep pec stretch"],
-          yt:{url:"https://www.youtube.com/watch?v=uUGDRwge4F8",channel:"Alan Thrall",title:"Dumbbell floor press — how and why"} },
-        { name:"Single-arm dumbbell row", target:"3×10 each", muscle:"Back",
-          cues:["Brace your knee and hand on a bench; keep your back flat and parallel to the floor","Pull the dumbbell to your hip — not your armpit — for better lat engagement","Let the shoulder blade retract fully at the top","Control the descent; don't just drop the weight"],
-          yt:{url:"https://www.youtube.com/watch?v=pYcpY20QaE8",channel:"Jeff Nippard",title:"Dumbbell row — correct form"} },
-        { name:"Step-ups (bodyweight)", target:"3×12 each", muscle:"Legs / glutes", hernia:true,
-          cues:["Place the whole foot on the step — don't push off the back foot","Drive through the heel of the raised foot to stand up","Squeeze your glute at the top of the movement","Step down slowly and under control"],
-          yt:{url:"https://www.youtube.com/watch?v=dQqApCGd5Ss",channel:"Athlean-X",title:"Step-ups — do them right"} },
-        { name:"Face pull", target:"3×15", muscle:"Rear delts / rotator cuff",
-          cues:["Set the cable at face height; use a rope attachment","Pull to your forehead, elbows flaring out and back — like a double bicep pose","External rotation at the end is the key — really drive those hands back","Light weight, high reps — this is corrective, not a strength movement"],
-          yt:{url:"https://www.youtube.com/watch?v=rep-qVOkqgk",channel:"Athlean-X",title:"Face pull — the most important exercise"} },
-        { name:"Pallof press", target:"3×12 each", muscle:"Core (anti-rotation)", hernia:true,
-          cues:["Stand side-on to the cable; the resistance will try to rotate you — resist it","Press the handle straight out from your chest and hold 1–2 seconds","Return slowly; keep hips square throughout","Core should be braced like you're about to be punched — not sucked in"],
-          yt:{url:"https://www.youtube.com/watch?v=AH_QZLm_0-s",channel:"Alan Thrall",title:"Pallof press — anti-rotation core"} },
-        { name:"Farmer carry", target:"3×20m", muscle:"Full body / grip", hernia:true,
-          cues:["Stand tall — pack your shoulders down and back before you walk","Take controlled steps; don't lean to either side","Brace your core as if you're carrying something fragile","If you feel any groin or ab pull, reduce the weight immediately"],
-          yt:{url:"https://www.youtube.com/watch?v=Fkzk_RqlYig",channel:"Alan Thrall",title:"Farmer carry — how to do it properly"} },
-      ]
-    }
-  },
-  {
-    id:2, name:"Phase 2 — Variation & volume", desc:"Alternative exercises, up to 4 sets week 2",
-    sessions:{
-      A:[
-        { name:"Incline dumbbell press", target:"3×8–10", muscle:"Upper chest / triceps",
-          cues:["Set bench to 30–45° — higher angles shift load to shoulders, not chest","Lower dumbbells to your upper chest; elbows at ~45° to your torso","Press to full extension but don't bang the weights together at the top","Feels very different from flat bench — focus on that upper chest squeeze"],
-          yt:{url:"https://www.youtube.com/watch?v=8iPEnn-ltC8",channel:"Jeff Nippard",title:"Incline dumbbell press — full guide"} },
-        { name:"Chest-supported row", target:"3×10–12", muscle:"Back / biceps",
-          cues:["Chest pad removes lower back stress — great for pure back focus","Pull handles to your lower chest/upper abdomen with elbows close","Squeeze shoulder blades together hard at the top and hold 1 second","Because your body is supported you can really focus on the back contraction"],
-          yt:{url:"https://www.youtube.com/watch?v=T3N-TO4reLQ",channel:"Renaissance Periodization",title:"Chest supported row — technique"} },
-        { name:"Arnold press", target:"3×10", muscle:"Shoulders (all heads)",
-          cues:["Start with palms facing you at chin height, rotate as you press","By the top, palms face forward — the rotation hits all three delt heads","Lower slowly with the same rotation in reverse","Don't rush the rotation — the twist is the whole point of this variation"],
-          yt:{url:"https://www.youtube.com/watch?v=6Z15_WdXmVw",channel:"Athlean-X",title:"Arnold press — how to do it"} },
-        { name:"Single-arm cable pulldown", target:"3×12 each", muscle:"Lats",
-          cues:["Kneel or stand; pull the handle down and across to your hip","Think of your hand as a hook — arm is just the cable, lat does the work","Full stretch at the top with scapula elevated, full contraction at the bottom","Single-arm lets you feel each side independently and spot imbalances"],
-          yt:{url:"https://www.youtube.com/watch?v=aBaibhGWBB0",channel:"Athlean-X",title:"Single arm pulldown — lat isolation"} },
-        { name:"Hammer curl", target:"3×12", muscle:"Biceps / brachialis",
-          cues:["Neutral grip (thumbs up) throughout — don't rotate the wrist","This hits the brachialis, which lies under the bicep and adds arm thickness","Keep elbows pinned at your sides, just like a standard curl","Heavier than supinated curls — the brachialis is a strong muscle"],
-          yt:{url:"https://www.youtube.com/watch?v=TwD-YGVP4Bk",channel:"Jeff Nippard",title:"Hammer curl — form and mistakes"} },
-        { name:"Overhead tricep extension", target:"3×12", muscle:"Triceps (long head)",
-          cues:["Long head of tricep only fully stretches when arm is overhead","Keep elbows close together and pointed at the ceiling throughout","Lower the weight behind your head until you feel a deep tricep stretch","Use a single dumbbell held at the inner plate, or a cable with rope"],
-          yt:{url:"https://www.youtube.com/watch?v=YbX7Wd8jQ-Q",channel:"Jeff Nippard",title:"Overhead tricep extension — long head focus"} },
-      ],
-      B:[
-        { name:"Hack squat (machine)", target:"3×10–12", muscle:"Quads", hernia:true,
-          cues:["Feet shoulder-width, toes slightly out on the platform","Lower until thighs are parallel; the machine tracks the path for you","Push through your whole foot — don't rise up onto toes","Machine provides back support — safer than barbell squat post-repair"],
-          yt:{url:"https://www.youtube.com/watch?v=EdtpDhMoxS8",channel:"Jeff Nippard",title:"Hack squat — technique and tips"} },
-        { name:"Single-leg RDL (light DB)", target:"3×10 each", muscle:"Hamstrings / balance", hernia:true,
-          cues:["Hold a light dumbbell in opposite hand to the working leg","Hinge forward, letting the rear leg float up behind you for counterbalance","Keep hips square — the tendency is for the hip of the floating leg to rise","Feel the stretch in the hamstring of the standing leg; that's the cue to stop"],
-          yt:{url:"https://www.youtube.com/watch?v=2cNI-3E3WyI",channel:"Alan Thrall",title:"Single leg RDL — balance and form"} },
-        { name:"Bulgarian split squat", target:"3×10 each", muscle:"Quads / glutes", hernia:true,
-          cues:["Rear foot elevated on a bench; front foot far enough forward to stay vertical","Descend straight down — don't let the front knee cave inward","Most of your weight should be through the front heel","Start with bodyweight — this is harder than it looks and humbling is fine"],
-          yt:{url:"https://www.youtube.com/watch?v=2C-uNgKwPLE",channel:"Jeff Nippard",title:"Bulgarian split squat — complete guide"} },
-        { name:"Nordic curl (assisted)", target:"3×8", muscle:"Hamstrings",
-          cues:["Anchor your heels firmly; lower yourself forward as slowly as possible","Use your hands to push off the floor and help yourself back up","The eccentric (lowering) phase is the key — go as slow as you can","One of the best hamstring injury prevention exercises in existence"],
-          yt:{url:"https://www.youtube.com/watch?v=4m2cr_GXnCo",channel:"Squat University",title:"Nordic curl — technique guide"} },
-        { name:"Donkey calf raise", target:"3×15", muscle:"Calves",
-          cues:["Bend at the hip ~90°; this position stretches the gastrocnemius more than seated","Full range: deep stretch at the bottom, full rise on toes at the top","Slow and controlled — calves respond well to time under tension","You can do these on a step at a gym if no specific machine is available"],
-          yt:{url:"https://www.youtube.com/watch?v=JbyjNymZOt0",channel:"Jeff Nippard",title:"Calf training — all variations"} },
-        { name:"Glute bridge", target:"3×15", muscle:"Glutes", hernia:true,
-          cues:["Lie on your back, feet flat, knees bent at ~90°","Drive through your heels to lift your hips, squeezing glutes hard at the top","Hold the top for 1–2 seconds; lower under control","A barbell or dumbbell on your hips adds load when bodyweight is too easy"],
-          yt:{url:"https://www.youtube.com/watch?v=OUgsJ8-Vi0E",channel:"Squat University",title:"Glute bridge — proper form"} },
-      ],
-      C:[
-        { name:"Cable fly", target:"3×12", muscle:"Chest / stretch",
-          cues:["Set cables at shoulder height; slight forward lean from the hips","Keep a fixed soft bend in the elbows — arms don't straighten or bend more during the rep","Focus on the stretch at the top — that's where chest muscle tension is highest","Meet your hands at chest height and hold the squeeze for 1 second"],
-          yt:{url:"https://www.youtube.com/watch?v=taI4XduLpTk",channel:"Jeff Nippard",title:"Cable fly — chest isolation"} },
-        { name:"Meadows row", target:"3×10 each", muscle:"Back / thickness",
-          cues:["Load one end of a barbell into a landmine or corner; grab it with the far hand","Row the bar to your hip with a slight torso rotation — this is a John Meadows staple","The angle hits your lats and mid-back differently from a dumbbell row","Start light — the leverage feels awkward at first"],
-          yt:{url:"https://www.youtube.com/watch?v=mJLM71hO8TA",channel:"Renaissance Periodization",title:"Meadows row — technique"} },
-        { name:"Reverse lunge (DB)", target:"3×12 each", muscle:"Legs / balance", hernia:true,
-          cues:["Step back into the lunge rather than forward — much easier on the knee","Front shin stays vertical; don't let the knee travel past the toes","Lower the back knee to just above the floor, then drive up through the front heel","Dumbbells at your sides are fine; don't hold them in front — it shifts balance"],
-          yt:{url:"https://www.youtube.com/watch?v=eFWCn5iEbTU",channel:"Athlean-X",title:"Reverse lunge — correct technique"} },
-        { name:"Band pull-apart", target:"3×20", muscle:"Rear delts / posture",
-          cues:["Hold band at arm's length in front of you at shoulder height","Pull the band apart until arms are straight out to the sides — chest passes through","Squeeze your rear delts and hold briefly at full stretch","This is a corrective exercise — don't rush it; feel every rep"],
-          yt:{url:"https://www.youtube.com/watch?v=D7PjX6nJMHI",channel:"Athlean-X",title:"Band pull-apart — postural fix"} },
-        { name:"Dead bug", target:"3×10 each", muscle:"Core (safe)", hernia:true,
-          cues:["Lie on your back, arms up, knees at 90° above hips","Lower opposite arm and leg toward the floor simultaneously — keep lower back FLAT","Breathe out as you lower; the breath helps lock the lower back down","If your back arches, reduce the range of motion until core strength improves"],
-          yt:{url:"https://www.youtube.com/watch?v=g_BYB0R-4Ws",channel:"Squat University",title:"Dead bug — core stability"} },
-        { name:"Suitcase carry", target:"3×20m each", muscle:"Core / lateral stability", hernia:true,
-          cues:["Hold a dumbbell in one hand at your side — resist leaning toward it","Walk tall; the challenge is keeping your torso perfectly upright","Your obliques and QL work hard to prevent lateral bending","If you feel any groin pull, switch to a lighter weight immediately"],
-          yt:{url:"https://www.youtube.com/watch?v=YcP6o5NXgLY",channel:"Alan Thrall",title:"Suitcase carry — how and why"} },
-      ]
-    }
-  },
-  {
-    id:3, name:"Phase 3 — Intensity & progression", desc:"Heavier loading, advanced variations, personal bests",
-    sessions:{
-      A:[
-        { name:"Close-grip bench press", target:"3×6–8", muscle:"Chest / triceps (overload)",
-          cues:["Grip just inside shoulder-width — not ultra-narrow, which stresses wrists","Bar path and setup identical to flat bench; elbows stay closer to the body","You'll press slightly less weight than flat bench — that's normal","Emphasises triceps more than a wider grip"],
-          yt:{url:"https://www.youtube.com/watch?v=nEF0bv2FW94",channel:"Jeff Nippard",title:"Close grip bench press — guide"} },
-        { name:"Pendlay row", target:"3×8", muscle:"Back / power",
-          cues:["Bar starts on the floor each rep — this is a dead stop row, not a partial","Torso parallel to the floor; pull the bar explosively to your lower chest","Lower the bar all the way to the floor and reset your position between reps","More powerful and heavier than a standard barbell row; treat it like a deadlift for your back"],
-          yt:{url:"https://www.youtube.com/watch?v=Weu9HMHdiDA",channel:"Alan Thrall",title:"Pendlay row — perfect form"} },
-        { name:"Push press (barbell)", target:"3×8", muscle:"Shoulders / full body",
-          cues:["A slight dip and drive with the legs helps initiate the press — this is not cheating, it's the movement","Press the bar to full lockout overhead; control the descent back to your shoulders","Keep the bar over your midfoot, not in front of you","If you can't lock out without extreme back arch, the weight is too heavy"],
-          yt:{url:"https://www.youtube.com/watch?v=iaBVSJm78ko",channel:"Alan Thrall",title:"Push press — technique guide"} },
-        { name:"Weighted pull-up / assisted", target:"3×8–10", muscle:"Lats / biceps",
-          cues:["Full dead hang at the bottom, chin clearly above bar at the top","Shoulder-width overhand grip; think about pulling your elbows to your hips","Add a dumbbell between your feet or a belt if bodyweight feels easy","Assisted machine or band if you're not there yet — both are equally valid"],
-          yt:{url:"https://www.youtube.com/watch?v=eGo4IYlbE5g",channel:"Jeff Nippard",title:"Pull-up — how to do them properly"} },
-        { name:"Spider curl", target:"3×10", muscle:"Biceps (peak)",
-          cues:["Lie face down on an incline bench; arms hang straight down","Curl the dumbbells up toward your shoulders — upper arms stay vertical throughout","This eliminates all shoulder swing — pure bicep contraction","Great for peak contraction and is very humbling with weight selection"],
-          yt:{url:"https://www.youtube.com/watch?v=oKxHLzeRaAM",channel:"Jeff Nippard",title:"Spider curl — bicep peak"} },
-        { name:"Skull crushers", target:"3×10", muscle:"Triceps",
-          cues:["Lie flat on a bench; lower an EZ bar or dumbbells to your forehead or just behind it","Keep upper arms pointed at the ceiling and stationary throughout","If elbows hurt, try a slight angle (lower toward forehead rather than straight back)","Heavier than pushdowns — great for overall tricep mass"],
-          yt:{url:"https://www.youtube.com/watch?v=d_KZxkY_0cM",channel:"Jeff Nippard",title:"Skull crushers — complete guide"} },
-      ],
-      B:[
-        { name:"Leg press (heavier)", target:"3×8–10", muscle:"Quads / full leg push", hernia:true,
-          cues:["Same setup as Phase 1 but load is higher — warm up thoroughly first","Don't lock knees out completely at the top — keep a slight bend","If you feel any lower ab discomfort, reduce range of motion at the bottom","Listen to your body — the hernia repair area can feel different under heavier load"],
-          yt:{url:"https://www.youtube.com/watch?v=IZxyjW7MPJQ",channel:"Jeff Nippard",title:"Leg press — maximising the movement"} },
-        { name:"Stiff-leg deadlift", target:"3×8", muscle:"Hamstrings (max stretch)",
-          cues:["Knees stay softly bent throughout — less bend than RDL but not fully locked","Lower until you feel a strong hamstring stretch, then drive the hips forward","Keep the bar close to your legs; it drifts forward with heavier weight","Compared to RDL: the range of motion is slightly longer — focus on the stretch"],
-          yt:{url:"https://www.youtube.com/watch?v=ap-ykFx8bEU",channel:"Jeff Nippard",title:"Stiff leg deadlift vs RDL"} },
-        { name:"Sissy squat / knee extension", target:"3×12", muscle:"Quad isolation", hernia:true,
-          cues:["Machine: sit down, pad just above ankles, extend legs fully and squeeze","Hold the top position for 1 second — quad connection is everything here","Lower slowly; don't let the weight crash down","Knee extensions are safe post-hernia repair — no abdominal pressure"],
-          yt:{url:"https://www.youtube.com/watch?v=YyvSfVjQeL0",channel:"Athlean-X",title:"Leg extension — proper form"} },
-        { name:"Lying leg curl (heavy)", target:"3×10", muscle:"Hamstrings",
-          cues:["Same movement as Phase 1 but pushing into heavier territory","At this weight you may feel one side working harder — normal, but worth noting","Pause at full contraction, then a slow 3-second descent","Don't let hips lift off the pad — that shortens the range of motion"],
-          yt:{url:"https://www.youtube.com/watch?v=1Tq3QdYUuHs",channel:"Athlean-X",title:"Leg curl — heavy loading tips"} },
-        { name:"Standing calf raise (heavy)", target:"4×12", muscle:"Calves",
-          cues:["4 sets this week — calves need higher volume to respond","Standing hits the gastrocnemius (upper calf) more than seated","Full stretch at the bottom is non-negotiable — partial reps don't build calves","Slow tempo; calves are used to bodyweight walking, so they need time under tension to grow"],
-          yt:{url:"https://www.youtube.com/watch?v=JbyjNymZOt0",channel:"Jeff Nippard",title:"Standing calf raise — how to grow calves"} },
-        { name:"Hip thrust (dumbbell)", target:"3×12", muscle:"Glutes (max)", hernia:true,
-          cues:["Upper back on a bench, dumbbell or barbell across your hips with padding","Drive through your heels and squeeze your glutes hard at the top","Don't hyperextend your lower back at the top — stop when hips are fully extended","This is the most effective glute exercise — load it progressively"],
-          yt:{url:"https://www.youtube.com/watch?v=xDmFkJxPzeM",channel:"Jeff Nippard",title:"Hip thrust — complete guide"} },
-      ],
-      C:[
-        { name:"Weighted dip / bench dip", target:"3×8–10", muscle:"Chest / triceps",
-          cues:["Lean slightly forward for more chest; upright for more triceps","Lower until shoulders are below elbows — full range of motion","Add a dumbbell between your knees or use a belt for load","Bench dip is a good regression if parallel bar dips feel too heavy or unsafe"],
-          yt:{url:"https://www.youtube.com/watch?v=2z8JmcrW-As",channel:"Jeff Nippard",title:"Dips — chest vs tricep focus"} },
-        { name:"Barbell row", target:"3×8", muscle:"Back (compound)",
-          cues:["Hinge to ~45°; pull the bar to your lower chest, elbows back","Keep your back angle constant — don't stand up to help the weight move","This is a heavy compound back movement — treat it with the same respect as a deadlift","Overhand grip hits more upper back; underhand hits more lats"],
-          yt:{url:"https://www.youtube.com/watch?v=FWJR5Ve8bnQ",channel:"Alan Thrall",title:"Barbell row — everything you need to know"} },
-        { name:"Reverse hack squat", target:"3×10", muscle:"Glutes / hams", hernia:true,
-          cues:["Face the machine pad with chest against it; feet low on the platform","This reverse position targets glutes and hamstrings rather than quads","Lower with control; you'll feel a deep glute stretch at the bottom","Excellent glute-dominant leg movement with machine back support"],
-          yt:{url:"https://www.youtube.com/watch?v=0N_GaOEmdC4",channel:"Athlean-X",title:"Reverse hack squat — glute focus"} },
-        { name:"Rear delt fly (heavy)", target:"3×12", muscle:"Rear delts",
-          cues:["Bend over 90° or use a reverse pec deck; arms have a fixed soft bend","Move the weight in an arc — elbows drive back and up, not just back","Don't use so much weight that your traps take over","Rear delts are chronically under-trained; this corrects posture and protects shoulder health"],
-          yt:{url:"https://www.youtube.com/watch?v=EA7u4Q_8HQ0",channel:"Jeff Nippard",title:"Rear delt fly — how to actually hit them"} },
-        { name:"Ab wheel rollout", target:"3×10", muscle:"Core (advanced)", hernia:true,
-          cues:["Start on your knees; roll out only as far as you can keep your lower back flat","Brace your core as if bracing for a punch before you move","Pull yourself back with your core — not your lower back or hip flexors","If you've had hernia repair, start conservatively and build range over weeks"],
-          yt:{url:"https://www.youtube.com/watch?v=p5RGCNe0-Lw",channel:"Athlean-X",title:"Ab wheel rollout — how to progress"} },
-        { name:"Trap bar carry / shrug", target:"3×20m", muscle:"Traps / full body", hernia:true,
-          cues:["Deadlift the trap bar up cleanly — brace before you pull","Walk with controlled steps; the neutral grip is easier on the wrists than a barbell","For shrugs: lift bar, then elevate shoulders to ears and hold 1 second","A loaded carry at the end is a great full-body finisher"],
-          yt:{url:"https://www.youtube.com/watch?v=Fkzk_RqlYig",channel:"Alan Thrall",title:"Loaded carries — the complete guide"} },
-      ]
-    }
+/* ============ PROGRAM DATA ============ */
+// helper to shorten writing exercise rows: [name, sets, reps, rpe, rest]
+function d(name,sets,reps,rpe,rest){ return {name,sets,reps,rpe,rest}; }
+
+const PROGRAMS = {
+fullbody: { id:"fullbody", label:"Full Body", daysPerWeek:3,
+  dayLabels:["Full Body #1","Full Body #2","Full Body #3"],
+  blocks:[
+    { label:"Weeks 1-4 · Strength Base", weeks:[1,2,3,4], days:[
+      [d("Back Squat",3,"6",7,"3-4"), d("Barbell Bench Press",3,"8",7,"3-4"), d("Lat Pulldown",3,"10",8,"2-3"), d("Romanian Deadlift",3,"10",7,"2-3"), d("Assisted Dip",3,"8",7,"1-2"), d("Standing Calf Raise",3,"10",8,"1-2"), d("Dumbbell Supinated Curl",3,"10",8,"1-2")],
+      [d("Deadlift",3,"5",7,"3-4"), d("Military Press",3,"8",8,"3-4"), d("Chest-Supported T-Bar Row",3,"12",8,"2-3"), d("Leg Extension",3,"12",8,"1-2"), d("Cable Flye",3,"12",8,"1-2"), d("Crunch",3,"12",7,"1-2"), d("Dumbbell Skull Crusher",3,"10",8,"1-2")],
+      [d("Dumbbell Walking Lunge",3,"10 (10 steps/leg)",8,"2-3"), d("Dumbbell Incline Press",3,"8",7,"2-3"), d("Reverse Grip Lat Pulldown",3,"10",8,"2-3"), d("Barbell Hip Thrust",3,"12",8,"2-3"), d("Seated Face Pull",3,"12",8,"1-2"), d("Dumbbell Lateral Raise",3,"10",8,"1-2"), d("Lying Leg Curl",3,"10",8,"1-2")]
+    ]},
+    { label:"Weeks 5-8 · Modified Strength Base", weeks:[5,6,7,8], days:[
+      [d("Back Squat",3,"8",8,"3-4"), d("Dumbbell Seated Shoulder Press",3,"10",8,"3-4"), d("Single-Arm Pulldown",3,"12",9,"2-3"), d("Barbell Hip Thrust",3,"8",9,"2-3"), d("Pec Deck",3,"15",9,"1-2"), d("Reverse Pec Deck",3,"15",9,"1-2"), d("Cable Lateral Raise",3,"12",9,"1-2")],
+      [d("Deadlift",3,"3",8,"3-4"), d("Close-Grip Bench Press",3,"5",7,"3-4"), d("Dumbbell Row",3,"12",8,"2-3"), d("Dumbbell Walking Lunge",3,"12 (12 steps/leg)",8,"1-2"), d("Assisted Dip",3,"12",8,"1-2"), d("Bicycle Crunch",3,"10",7,"1-2"), d("Single-Arm Cable Curl",3,"12",8,"1-2")],
+      [d("Back Squat",3,"5",8,"2-3"), d("Barbell Bench Press",3,"10",8,"2-3"), d("Neutral-Grip Pulldown",3,"15",8,"2-3"), d("Lying Leg Curl",3,"12",8,"2-3"), d("Seated Face Pull",3,"15",8,"1-2"), d("Single-Arm Rope Tricep Extension",3,"12",8,"1-2"), d("Standing Calf Raise",3,"10",8,"1-2")]
+    ]}
+  ]},
+upperlower: { id:"upperlower", label:"Upper/Lower", daysPerWeek:4,
+  dayLabels:["Lower #1","Upper #1","Lower #2","Upper #2"],
+  blocks:[
+    { label:"Weeks 1-4 · Strength Base", weeks:[1,2,3,4], days:[
+      [d("Back Squat",3,"6",7,"3-4"), d("Romanian Deadlift",3,"10",7,"2-3"), d("Barbell Hip Thrust",3,"12",8,"2-3"), d("Leg Extension",3,"12",9,"1-2"), d("Lying Leg Curl",3,"12",9,"1-2"), d("Machine Seated Hip Abduction",3,"6",7,"1-2"), d("Crunch",3,"12",7,"1-2")],
+      [d("Barbell Bench Press",3,"5",7,"3-4"), d("Lat Pulldown",3,"10",8,"2-3"), d("Military Press",3,"10",7,"3-4"), d("Chest-Supported T-Bar Row",3,"12",8,"2-3"), d("Cable Flye",3,"12",8,"1-2"), d("Dumbbell Supinated Curl",3,"10",8,"1-2"), d("Single-Arm Rope Tricep Extension",3,"12",8,"1-2")],
+      [d("Deadlift",3,"8",7,"3-4"), d("Dumbbell Walking Lunge",3,"10 (10 steps/leg)",8,"2-3"), d("Single-Leg Leg Extension",3,"15",8,"1-2"), d("Single-Leg Lying Leg Curl",3,"15",8,"1-2"), d("Machine Seated Hip Abduction",3,"15",9,"1-2"), d("Standing Calf Raise",3,"12",8,"1-2"), d("Plank",3,"20sec",8,"1-2")],
+      [d("Dumbbell Incline Press",3,"8",8,"2-3"), d("Reverse Grip Lat Pulldown",3,"8",8,"2-3"), d("Assisted Dip",3,"10",7,"2-3"), d("Barbell Bent Over Row",3,"12",7,"2-3"), d("Dumbbell Lateral Raise",3,"15",8,"1-2"), d("Seated Face Pull",3,"15",8,"1-2"), d("Hammer Curl",3,"8",9,"1-2")]
+    ]},
+    { label:"Weeks 5-8 · Modified Strength Base", weeks:[5,6,7,8], days:[
+      [d("Deadlift",3,"5",8,"3-4"), d("Goblet Squat",3,"12",8,"2-3"), d("Dumbbell Single-Leg Hip Thrust",3,"10",9,"2-3"), d("Leg Press",3,"12",8,"1-2"), d("Lying Leg Curl",3,"15",9,"1-2"), d("Standing Calf Raise",3,"8",8,"1-2"), d("Bicycle Crunch",3,"12",8,"1-2")],
+      [d("Barbell Bench Press",3,"8",8,"3-4"), d("Single-Arm Pulldown",3,"8",8,"2-3"), d("Dumbbell Seated Shoulder Press",3,"12",7,"2-3"), d("Dumbbell Row",3,"12",8,"2-3"), d("Assisted Dip",3,"6",8,"1-2"), d("Seated Face Pull",3,"15",9,"1-2"), d("EZ Bar Curl",3,"12",9,"1-2")],
+      [d("Back Squat",3,"8",8,"3-4"), d("Barbell Hip Thrust",3,"8",8,"2-3"), d("Romanian Deadlift",3,"12",8,"2-3"), d("Seated Leg Curl",3,"8",9,"1-2"), d("Standing Calf Raise",3,"6",9,"1-2"), d("Hanging Leg Raise",3,"6",8,"1-2"), d("Machine Seated Hip Abduction",3,"20",9,"1-2")],
+      [d("Military Press",3,"6",8,"3-4"), d("Neutral-Grip Pulldown",3,"6",8,"3-4"), d("Dumbbell Incline Press",3,"8",8,"2-3"), d("Cable Seated Row",3,"8",9,"2-3"), d("Cable Lateral Raise",3,"12",8,"1-2"), d("Reverse Pec Deck",3,"12",8,"1-2"), d("Single-Arm Cable Curl",3,"15",9,"1-2")]
+    ]}
+  ]},
+split: { id:"split", label:"Body Part Split", daysPerWeek:5,
+  dayLabels:["Chest & Triceps","Legs & Abs","Back & Biceps","Legs & Abs","Shoulders & Arms"],
+  blocks:[
+    { label:"Weeks 1-4 · Strength Base", weeks:[1,2,3,4], days:[
+      [d("Barbell Bench Press",3,"6",7,"3-4"), d("Dumbbell Incline Press",3,"8",8,"2-3"), d("Cable Flye",3,"12",8,"1-2"), d("Assisted Dip",3,"10",7,"1-2"), d("Dumbbell Skull Crusher",3,"12",8,"1-2")],
+      [d("Back Squat",3,"6",7,"3-4"), d("Romanian Deadlift",3,"8",7,"2-3"), d("Barbell Hip Thrust",3,"12",8,"2-3"), d("Leg Extension",3,"12",8,"1-2"), d("Lying Leg Curl",3,"12",8,"1-2"), d("Standing Calf Raise",2,"8",7,"1-2"), d("Crunch",2,"12",7,"1-2")],
+      [d("Reverse Grip Lat Pulldown",3,"8",8,"2-3"), d("Cable Seated Row",3,"10",8,"2-3"), d("Chest-Supported T-Bar Row",3,"12",8,"2-3"), d("Seated Face Pull",3,"15",8,"1-2"), d("Dumbbell Supinated Curl",3,"12",8,"1-2")],
+      [d("Deadlift",3,"5",7,"3-4"), d("Dumbbell Walking Lunge",3,"10 (10 steps/leg)",8,"2-3"), d("Single-Leg Leg Extension",2,"15",8,"1-2"), d("Single-Leg Lying Leg Curl",2,"15",8,"1-2"), d("Machine Seated Hip Abduction",3,"15",7,"1-2"), d("Standing Calf Raise",2,"12",8,"1-2"), d("Plank",3,"20sec",8,"1-2")],
+      [d("Military Press",3,"6",7,"3-4"), d("Dumbbell Lateral Raise",3,"12",8,"1-2"), d("Cable Reverse Flye",3,"15",8,"1-2"), d("Single-Arm Rope Tricep Extension",2,"12",8,"1-2"), d("Single-Arm Cable Curl",2,"12",8,"1-2")]
+    ]},
+    { label:"Weeks 5-8 · Modified Strength Base", weeks:[5,6,7,8], days:[
+      [d("Barbell Bench Press",3,"8",8,"3-4"), d("Machine Incline Chest Press",3,"12",8,"2-3"), d("Pec Deck",3,"12",8,"1-2"), d("Assisted Dip",3,"6",8,"1-2"), d("Cable Tricep Kickback",3,"15",8,"1-2")],
+      [d("Deadlift",3,"5",8,"3-4"), d("Goblet Squat",3,"12",8,"2-3"), d("Dumbbell Single-Leg Hip Thrust",3,"10",9,"2-3"), d("Leg Press",3,"12",8,"1-2"), d("Lying Leg Curl",3,"15",9,"1-2"), d("Standing Calf Raise",3,"8",8,"1-2"), d("Bicycle Crunch",3,"12",8,"1-2")],
+      [d("Lat Pulldown",3,"6",8,"2-3"), d("Dumbbell Row",3,"12",8,"2-3"), d("Barbell Bent Over Row",3,"12",8,"2-3"), d("Reverse Pec Deck",3,"15",8,"1-2"), d("EZ Bar Curl",3,"15",8,"1-2")],
+      [d("Back Squat",3,"8",8,"3-4"), d("Barbell Hip Thrust",3,"8",8,"2-3"), d("Romanian Deadlift",3,"12",8,"2-3"), d("Seated Leg Curl",3,"8",9,"1-2"), d("Standing Calf Raise",3,"6",9,"1-2"), d("Hanging Leg Raise",3,"6",8,"1-2"), d("Machine Seated Hip Abduction",3,"20",9,"1-2")],
+      [d("Dumbbell Seated Shoulder Press",3,"10",8,"3-4"), d("Cable Lateral Raise",3,"12",8,"1-2"), d("Dumbbell Bent Over Lateral Raise",3,"12",8,"1-2"), d("Dumbbell Floor Press",2,"15",8,"1-2"), d("Hammer Curl",2,"8",8,"1-2")]
+    ]}
+  ]}
+};
+
+/* ============ STATE ============ */
+const LS_STATE = "actraining_state_v2";
+const LS_HIST = "actraining_history_v2";
+const DEFAULT_STATE = {
+  name:"", sheetsUrl:"", activeProgram:"fullbody", cautionOn:true, cautionBannerDismissed:false,
+  programs:{
+    fullbody:{seqIndex:0, deload:false, draft:{}},
+    upperlower:{seqIndex:0, deload:false, draft:{}},
+    split:{seqIndex:0, deload:false, draft:{}}
   }
-];
+};
+let state = loadState();
+let history = loadHistory();
 
-const WEEK_TYPES = [
-  {label:"Foundation", note:"3 sets — focus on form, establish your baseline weights"},
-  {label:"Volume",     note:"4 sets — match or slightly beat last week, push the volume"},
-  {label:"Intensity",  note:"3 sets — aim to beat week 1 weights, this is your progression week"},
-];
-
-// ── State ──────────────────────────────────────────────────────────────────────
-let state = { overallWeek:1, session:'A', setData:{}, notes:{}, ticked:{} };
-
-const getPhaseIndex = () => Math.floor((state.overallWeek-1)/3);
-const getWeekInPhase = () => (state.overallWeek-1)%3;
-const currentPhase = () => PHASES[getPhaseIndex()];
-const currentWeekType = () => WEEK_TYPES[getWeekInPhase()];
-const numSets = () => getWeekInPhase()===1 ? 4 : 3;
-const sessionKey = (w) => `w${w!=null?w:state.overallWeek}_${state.session}`;
-
-function loadState() {
-  try {
-    const s = localStorage.getItem('fctraining_state');
-    if (s) state = {...state, ...JSON.parse(s)};
-    ['setData','notes','ticked'].forEach(k => { if (!state[k]) state[k]={}; });
-  } catch(e){}
+function loadState(){
+  try{ const raw = localStorage.getItem(LS_STATE); if(!raw) return JSON.parse(JSON.stringify(DEFAULT_STATE));
+    const parsed = JSON.parse(raw);
+    return Object.assign(JSON.parse(JSON.stringify(DEFAULT_STATE)), parsed, {programs:Object.assign(JSON.parse(JSON.stringify(DEFAULT_STATE)).programs, parsed.programs||{})});
+  }catch(e){ return JSON.parse(JSON.stringify(DEFAULT_STATE)); }
 }
-function saveState() { localStorage.setItem('fctraining_state', JSON.stringify(state)); }
+function saveState(){ localStorage.setItem(LS_STATE, JSON.stringify(state)); }
+function loadHistory(){ try{ return JSON.parse(localStorage.getItem(LS_HIST))||[]; }catch(e){ return []; } }
+function saveHistory(){ localStorage.setItem(LS_HIST, JSON.stringify(history)); }
 
-// ── Previous week data ─────────────────────────────────────────────────────────
-function getPrevData(exIndex) {
-  const wi = getWeekInPhase();
-  const out = [];
-  for (let i = wi; i >= 1; i--) {
-    const prevW = state.overallWeek - i;
-    if (prevW < 1) continue;
-    const prevWi = (prevW-1)%3;
-    const prevNSets = prevWi===1 ? 4 : 3;
-    const prevExKey = `w${prevW}_${state.session}_ex${exIndex}`;
-    const sets = [];
-    for (let s=0; s<prevNSets; s++) {
-      const sd = state.setData[`${prevExKey}_s${s}`]||{};
-      sets.push((sd.weight||sd.reps) ? {weight:sd.weight||'—', reps:sd.reps||'—'} : null);
+/* ============ WEEK SEQUENCE (handles deload insertion) ============ */
+function buildSequence(progId){
+  const p = PROGRAMS[progId];
+  const deloadOn = state.programs[progId].deload;
+  const seq = [];
+  p.blocks.forEach((block, bi)=>{
+    block.weeks.forEach(w=> seq.push({week:w, blockIndex:bi, deload:false}));
+    if(deloadOn) seq.push({week:"Deload", blockIndex:bi, deload:true});
+  });
+  return seq;
+}
+
+function getPos(progId){
+  const seq = buildSequence(progId);
+  const prog = PROGRAMS[progId];
+  const st = state.programs[progId];
+  const totalSessions = seq.length * prog.daysPerWeek;
+  if(st.seqIndex >= totalSessions || st.seqIndex < 0) st.seqIndex = 0;
+  const weekPointer = Math.floor(st.seqIndex / prog.daysPerWeek);
+  const dayIdx = st.seqIndex % prog.daysPerWeek;
+  return {seq, seqIndex:st.seqIndex, totalSessions, weekPointer, dayIdx, entry:seq[weekPointer]};
+}
+
+/* ============ RENDER: TRAIN TAB ============ */
+function renderProgPicker(){
+  const el = document.getElementById('progPicker');
+  el.innerHTML = Object.values(PROGRAMS).map(p=>
+    `<button class="${p.id===state.activeProgram?'active':''}" onclick="switchProgram('${p.id}')">${p.label}</button>`
+  ).join('');
+}
+
+function switchProgram(id){
+  state.activeProgram = id; saveState();
+  document.getElementById('setProgramSelect').value = id;
+  renderAll();
+}
+
+function renderTrain(){
+  const progId = state.activeProgram;
+  const prog = PROGRAMS[progId];
+  const {entry, dayIdx} = getPos(progId);
+  const block = prog.blocks[entry.blockIndex];
+  const dayExercises = block.days[dayIdx];
+  const dayLabel = prog.dayLabels[dayIdx];
+  const draftKey = `${entry.week}_${dayIdx}`;
+  const st = state.programs[progId];
+  if(!st.draft) st.draft = {};
+  if(!st.draft[draftKey]) st.draft[draftKey] = {};
+
+  let anyCaution = dayExercises.some(ex=> EX[ex.name] && EX[ex.name].caution);
+  document.getElementById('cautionBanner').style.display = (anyCaution && state.cautionOn && !state.cautionBannerDismissed) ? 'flex' : 'none';
+
+  let html = `<div class="card">
+    <div class="sess-head">
+      <div class="pos">${prog.label} — Week ${entry.week} of 8${entry.deload?'':''} · ${dayLabel}</div>
+      <div class="lbl">${block.label}</div>
+    </div>
+    ${entry.deload?`<span class="deload-tag">Deload week — aim ~1-2 RPE lower / consider dropping the last set</span>`:''}
+  `;
+
+  dayExercises.forEach((ex, exi)=>{
+    const info = EX[ex.name] || {};
+    const draft = st.draft[draftKey][exi] || {};
+    const swappedTo = draft.swap || null;
+    const displayName = swappedTo || ex.name;
+    const prevRef = findPrevWeights(progId, dayIdx, exi, ex.name);
+    const cautionBadge = (info.caution && state.cautionOn && !swappedTo) ? `<span class="badge caution">⚠️ caution</span>` : '';
+
+    html += `<div class="exercise" data-exi="${exi}">
+      <div class="ex-head">
+        <div>
+          <div class="ex-name">${escapeHtml(displayName)}${cautionBadge}${swappedTo?`<span class="swapped">swapped from ${escapeHtml(ex.name)}</span>`:''}</div>
+          <div class="ex-meta">${ex.sets}×${ex.reps} · RPE ${entry.deload? Math.max(5,ex.rpe-1): ex.rpe} · rest ${ex.rest} min</div>
+        </div>
+        <div class="ex-actions">
+          ${info.sub? `<button class="iconbtn" title="Swap exercise" onclick="openSwap(${exi})">🔁</button>`:''}
+          <button class="iconbtn" title="Info" onclick="openInfo(${exi})">ⓘ</button>
+        </div>
+      </div>
+      <div class="sets">`;
+
+    for(let s=1; s<=ex.sets; s++){
+      const sd = draft[`set${s}`] || {};
+      const tickClass = sd.done ? 'done':'';
+      const hasNext = s < ex.sets;
+      html += `<div class="setrow">
+        <div class="setnum">${s}</div>
+        <div>
+          <input type="number" inputmode="decimal" placeholder="kg" value="${sd.weight!=null?sd.weight:''}" onchange="updateSet(${exi},${s},'weight',this.value)">
+        </div>
+        <div>
+          <input type="number" inputmode="numeric" placeholder="reps" value="${sd.reps!=null?sd.reps:''}" onchange="updateSet(${exi},${s},'reps',this.value)">
+        </div>
+        <button class="tick ${tickClass}" onclick="toggleTick(${exi},${s})">${sd.done?'✓':''}</button>
+        ${hasNext? `<button class="copybtn" title="Copy this set's weight/reps to the next set" onclick="copyToNextSet(${exi},${s})">⬇</button>` : `<div></div>`}
+      </div>`;
+      if(sd.weight){
+        html += `<div class="plate-calc-row">${plateBreakdown(parseFloat(sd.weight))}</div>`;
+      }
+      if(prevRef[s-1]){
+        html += `<div class="setrow" style="margin-top:-4px"><div></div><div class="prevref ${prevRef[s-1].cls}">${prevRef[s-1].text}</div><div></div><div></div><div></div></div>`;
+      }
     }
-    if (sets.some(Boolean)) out.push({week:prevW, label:WEEK_TYPES[prevWi].label, sets});
+    html += `</div><textarea class="notesfield" placeholder="Notes for this exercise..." onchange="updateNote(${exi}, this.value)">${draft.note||''}</textarea>`;
+    html += `</div>`;
+  });
+
+  html += `<div class="actionbar">
+    <button class="secondary" onclick="resetSession()">Reset session</button>
+    <button class="primary" onclick="saveSession()">Save session</button>
+  </div></div>`;
+
+  document.getElementById('trainContent').innerHTML = html;
+}
+
+function plateBreakdown(totalKg){
+  if(!totalKg || totalKg<=20) return '';
+  const bar=20; let perSide=(totalKg-bar)/2;
+  if(perSide<=0) return 'bar only (20kg)';
+  const plates=[25,20,15,10,5,2.5,1.25];
+  let remain=perSide, used=[];
+  for(const p of plates){ while(remain+0.001>=p){ used.push(p); remain-=p; } }
+  if(used.length===0) return '';
+  return `bar 20kg + per side: ${used.join(', ')}kg${remain>0.01?` (+${remain.toFixed(2)}kg not plateable)`:''}`;
+}
+
+function findPrevWeights(progId, dayIdx, exi, exName){
+  // look through history for this program+day+exercise across the two most recent distinct weeks
+  const entries = history.filter(h=> h.program===progId && h.dayIndex===dayIdx && h.exercises && h.exercises[exi] && (h.exercises[exi].name===exName || h.exercises[exi].swappedFrom===exName));
+  entries.sort((a,b)=> (b.savedAt||0)-(a.savedAt||0));
+  const out = [];
+  if(entries[0]){
+    entries[0].exercises[exi].sets.forEach((s,i)=>{ out[i] = {text:`wk${entries[0].week}: ${s.weight||'-'}kg×${s.reps||'-'}`, cls:'w1'}; });
+  }
+  if(entries[1]){
+    entries[1].exercises[exi].sets.forEach((s,i)=>{ if(!out[i]) out[i] = {text:`wk${entries[1].week}: ${s.weight||'-'}kg×${s.reps||'-'}`, cls:'w2'}; });
   }
   return out;
 }
 
-// ── Render ─────────────────────────────────────────────────────────────────────
-function renderAll() {
-  renderBadge(); renderCycleOverview(); renderPhaseBar(); renderWeekRow(); renderExercises();
-  document.getElementById('saveBar').style.display = 'flex';
-  syncSettingsSelects();
-}
-
-function renderBadge() {
-  document.getElementById('weekBadge').textContent = `Week ${state.overallWeek} of 9`;
-}
-
-function renderCycleOverview() {
-  document.getElementById('cycleOverview').innerHTML = [0,1,2].map(p => {
-    const wS=p*3+1, cur=getPhaseIndex()===p;
-    return `<div class="cycle-block ${cur?'current':''}">
-      <div class="cb-phase">Phase ${p+1}</div>
-      <div class="cb-weeks">W${wS}–${wS+2}</div>
-      <div class="cb-label">${['Foundation','Variation','Intensity'][p]}</div>
-    </div>`;
-  }).join('');
-}
-
-function renderPhaseBar() {
-  document.getElementById('phaseName').textContent = currentPhase().name;
-  const pi = getPhaseIndex();
-  document.getElementById('phaseDots').innerHTML =
-    [0,1,2].map(i=>`<div class="phase-dot ${i<pi?'done':i===pi?'active':''}"></div>`).join('');
-}
-
-function renderWeekRow() {
-  const pi=getPhaseIndex(), wi=getWeekInPhase();
-  document.getElementById('weekRow').innerHTML = [0,1,2].map(i => {
-    const gw=pi*3+i+1;
-    return `<button class="week-btn ${wi===i?'active':''}" onclick="jumpToWeek(${gw})">
-      <span class="w-num">${gw}</span><span class="w-type">${WEEK_TYPES[i].label}</span>
-    </button>`;
-  }).join('');
-}
-
-function renderExercises() {
-  const exercises = currentPhase().sessions[state.session];
-  const nSets = numSets();
-  const key = sessionKey();
-  const wi = getWeekInPhase();
-  const wtName = currentWeekType().label.toLowerCase();
-  let html = '';
-
-  exercises.forEach((ex, ei) => {
-    const exKey = `${key}_ex${ei}`;
-    const ticked = Object.keys(state.ticked).filter(k=>k.startsWith(exKey+'_s')&&state.ticked[k]).length;
-    const pct = Math.round((ticked/nSets)*100);
-    const note = state.notes[exKey]||'';
-    const prevData = getPrevData(ei);
-    const hasPrev = prevData.length > 0;
-    const gc = hasPrev ? 'set-grid-prev' : 'set-grid-noprev';
-    const herniaBadge = ex.hernia ? '<span style="font-size:10px;color:#166534;margin-left:4px" title="Hernia-safe exercise">✓ safe</span>' : '';
-
-    let setsHtml = `<div class="set-header ${gc}">
-      <span></span>
-      ${hasPrev?'<span class="sh-prev">prev</span>':''}
-      <span>kg</span><span>reps</span><span>notes</span><span></span>
-    </div>`;
-
-    for (let s=0; s<nSets; s++) {
-      const sk = `${exKey}_s${s}`;
-      const sd = state.setData[sk]||{};
-      const done = state.ticked[sk]||false;
-      let prevCell = '';
-      if (hasPrev) {
-        prevCell = '<div class="prev-cell">';
-        prevData.forEach((pw,pi2) => {
-          const ps = pw.sets[s];
-          const cls = pi2===0?'pw1':'pw2';
-          const wl = prevData.length>1 ? `W${pw.week} ` : '';
-          prevCell += ps
-            ? `<span class="prev-val ${cls}">${wl}${ps.weight}×${ps.reps}</span>`
-            : `<span class="prev-val empty">—</span>`;
-        });
-        prevCell += '</div>';
-      }
-      setsHtml += `<div class="set-row ${gc}">
-        <div class="set-num">${s+1}</div>
-        ${hasPrev?prevCell:''}
-        <input type="number" placeholder="kg" value="${sd.weight||''}" step="0.5" min="0" onchange="setVal('${sk}','weight',this.value)">
-        <input type="number" placeholder="reps" value="${sd.reps||''}" min="0" onchange="setVal('${sk}','reps',this.value)">
-        <input type="text" placeholder="cue…" value="${sd.note||''}" onchange="setVal('${sk}','note',this.value)">
-        <button class="tick-btn ${done?'done':''}" onclick="toggleTick('${sk}',${ei})">${done?'✓':''}</button>
-      </div>`;
-    }
-
-    const weekNote = wi>0 ? `<div class="week-note">${currentWeekType().note}</div>` : '';
-
-    html += `<div class="exercise-card" id="excard-${ei}">
-      <div class="ex-header" onclick="toggleEx(${ei})">
-        <div class="ex-header-left">
-          <div class="ex-title-row">
-            <span class="ex-title">${ex.name}</span>
-            <button class="info-btn" onclick="event.stopPropagation();openModal(${ei})" title="Exercise guide">ⓘ</button>
-            <span class="intensity-badge intensity-${wtName}">${currentWeekType().label}</span>
-            ${herniaBadge}
-          </div>
-          <div class="ex-meta">${ex.muscle} · ${nSets===4?ex.target.replace('3×','4×'):ex.target}</div>
-        </div>
-        <div class="ex-progress">
-          <div class="progress-bar"><div class="progress-fill" id="pf-${ei}" style="width:${pct}%"></div></div>
-          <div class="progress-text">${ticked}/${nSets}</div>
-        </div>
-      </div>
-      <div class="ex-body" id="exbody-${ei}">
-        ${setsHtml}
-        <div class="ex-notes">
-          <textarea placeholder="Notes, form cues, effort…" onchange="setNote('${exKey}',this.value)">${note}</textarea>
-        </div>
-        ${weekNote}
-      </div>
-    </div>`;
-  });
-
-  document.getElementById('exerciseList').innerHTML = html;
-  const first = document.getElementById('exbody-0');
-  if (first) first.classList.add('open');
-}
-
-// ── Modal ──────────────────────────────────────────────────────────────────────
-function openModal(ei) {
-  const ex = currentPhase().sessions[state.session][ei];
-  document.getElementById('modalTitle').textContent = ex.name;
-  document.getElementById('modalMuscle').textContent = ex.muscle;
-
-  const herniaBlock = ex.hernia
-    ? `<div class="modal-hernia"><strong>✓ Hernia-repair safe</strong>This exercise has been selected as suitable following abdominal hernia repair. Listen to your body and stop if you feel any unusual groin or abdominal discomfort.</div>`
-    : '';
-
-  const cuesList = ex.cues.map(c=>`<li>${c}</li>`).join('');
-
-  const ytBlock = ex.yt
-    ? `<div class="modal-section">
-        <div class="modal-section-label">Video guide</div>
-        <a class="yt-btn" href="${ex.yt.url}" target="_blank" rel="noopener">
-          <div class="yt-icon">
-            <svg viewBox="0 0 24 24"><path d="M10 15.5l6-3.5-6-3.5v7zm11.56-7.83c.13.47.22 1.1.28 1.9.07.8.1 1.49.1 2.09L22 12c0 2.19-.16 3.8-.44 4.83-.25.9-.83 1.48-1.73 1.73-.47.13-1.33.22-2.65.28-1.3.07-2.49.1-3.59.1L12 19c-4.19 0-6.8-.16-7.83-.44-.9-.25-1.48-.83-1.73-1.73-.13-.47-.22-1.1-.28-1.9-.07-.8-.1-1.49-.1-2.09L2 12c0-2.19.16-3.8.44-4.83.25-.9.83-1.48 1.73-1.73.47-.13 1.33-.22 2.65-.28 1.3-.07 2.49-.1 3.59-.1L12 5c4.19 0 6.8.16 7.83.44.9.25 1.48.83 1.73 1.73z"/></svg>
-          </div>
-          <div>
-            <div class="yt-text">${ex.yt.title}</div>
-            <div class="yt-sub">${ex.yt.channel} · YouTube</div>
-          </div>
-        </a>
-      </div>`
-    : '';
-
-  document.getElementById('modalBody').innerHTML = `
-    ${herniaBlock}
-    <div class="modal-section">
-      <div class="modal-section-label">Form cues</div>
-      <ul class="modal-cues">${cuesList}</ul>
-    </div>
-    ${ytBlock}
-  `;
-
-  document.getElementById('modalOverlay').classList.add('open');
-  document.body.style.overflow = 'hidden';
-}
-
-function closeModal(e) {
-  if (e.target === document.getElementById('modalOverlay')) closeModalDirect();
-}
-function closeModalDirect() {
-  document.getElementById('modalOverlay').classList.remove('open');
-  document.body.style.overflow = '';
-}
-
-// ── Exercise interactions ──────────────────────────────────────────────────────
-function toggleEx(i) { document.getElementById(`exbody-${i}`).classList.toggle('open'); }
-
-function setVal(sk, field, val) {
-  if (!state.setData[sk]) state.setData[sk]={};
-  state.setData[sk][field] = val;
+function updateSet(exi, setNum, field, val){
+  const {progId, draftKey} = currentDraftKey();
+  const st = state.programs[progId];
+  if(!st.draft[draftKey][exi]) st.draft[draftKey][exi]={};
+  if(!st.draft[draftKey][exi][`set${setNum}`]) st.draft[draftKey][exi][`set${setNum}`]={};
+  st.draft[draftKey][exi][`set${setNum}`][field]=val;
   saveState();
+  renderTrain();
 }
-function setNote(exKey, val) { state.notes[exKey]=val; saveState(); }
-
-function toggleTick(sk, ei) {
-  state.ticked[sk] = !state.ticked[sk];
+function toggleTick(exi,setNum){
+  const {progId, draftKey} = currentDraftKey();
+  const st = state.programs[progId];
+  if(!st.draft[draftKey][exi]) st.draft[draftKey][exi]={};
+  if(!st.draft[draftKey][exi][`set${setNum}`]) st.draft[draftKey][exi][`set${setNum}`]={};
+  const cur = st.draft[draftKey][exi][`set${setNum}`];
+  cur.done = !cur.done;
   saveState();
-  const exKey = `${sessionKey()}_ex${ei}`;
-  const nSets = numSets();
-  const done = Object.keys(state.ticked).filter(k=>k.startsWith(exKey+'_s')&&state.ticked[k]).length;
-  const pf = document.getElementById(`pf-${ei}`);
-  if (pf) pf.style.width = Math.round((done/nSets)*100)+'%';
-  const btn = document.querySelector(`.tick-btn[onclick="toggleTick('${sk}',${ei})"]`);
-  if (btn) { btn.classList.toggle('done', state.ticked[sk]); btn.textContent = state.ticked[sk]?'✓':''; }
-  const pt = pf?.closest('.exercise-card')?.querySelector('.progress-text');
-  if (pt) pt.textContent = `${done}/${nSets}`;
+  renderTrain();
 }
-
-function selectSession(s) {
-  state.session=s; saveState();
-  ['A','B','C'].forEach(x=>document.getElementById(`btn-${x}`).classList.remove('active'));
-  document.getElementById(`btn-${s}`).classList.add('active');
-  renderExercises(); renderWeekRow();
-}
-
-function jumpToWeek(w) { state.overallWeek=w; saveState(); renderAll(); }
-
-function advanceWeek() {
-  if (state.overallWeek<9) { state.overallWeek++; saveState(); renderAll(); showToast(`Week ${state.overallWeek} started!`); }
-  else showToast('Programme complete — reset in Settings', true);
-}
-
-// ── Reset session ──────────────────────────────────────────────────────────────
-function confirmReset() {
-  if (!confirm('Clear all weights, reps and ticks for this session? Your saved history is not affected.')) return;
-  const key = sessionKey();
-  const exercises = currentPhase().sessions[state.session];
-  const nSets = numSets();
-  exercises.forEach((ex, ei) => {
-    const exKey = `${key}_ex${ei}`;
-    for (let s=0; s<nSets; s++) {
-      delete state.setData[`${exKey}_s${s}`];
-      delete state.ticked[`${exKey}_s${s}`];
-    }
-    delete state.notes[exKey];
-  });
+function copyToNextSet(exi, setNum){
+  // Copies this set's weight + reps into the very next set, so identical sets
+  // (the common case) only need typing out once.
+  const {progId, draftKey} = currentDraftKey();
+  const st = state.programs[progId];
+  if(!st.draft[draftKey][exi]) st.draft[draftKey][exi]={};
+  const dEx = st.draft[draftKey][exi];
+  const cur = dEx[`set${setNum}`] || {};
+  if(!dEx[`set${setNum+1}`]) dEx[`set${setNum+1}`]={};
+  dEx[`set${setNum+1}`].weight = cur.weight||'';
+  dEx[`set${setNum+1}`].reps = cur.reps||'';
   saveState();
-  renderExercises();
-  showToast('Session cleared ✓');
+  renderTrain();
 }
-
-// ── Save session ───────────────────────────────────────────────────────────────
-// Work out what comes next and advance state to it.
-// Returns a string describing what's next, for the toast.
-function advanceToNextSession() {
-  const sessions = ['A','B','C'];
-  const currentIdx = sessions.indexOf(state.session);
-  const isLastSession = currentIdx === 2; // C is last
-  const isLastWeek = state.overallWeek === 9;
-
-  if (!isLastSession) {
-    // Simply move to the next session in the same week
-    state.session = sessions[currentIdx + 1];
-    saveState();
-    return `Next up: Session ${state.session}`;
-  } else {
-    // C was just done — move to next week, back to Session A
-    state.session = 'A';
-    if (isLastWeek) {
-      // Completed the whole 9-week programme
-      saveState();
-      return '🏆 Programme complete! Reset in Settings to start again.';
-    }
-    const wasPhase = getPhaseIndex() + 1;
-    state.overallWeek++;
-    const nowPhase = getPhaseIndex() + 1;
-    saveState();
-    if (nowPhase !== wasPhase) {
-      return `Phase ${nowPhase} starts — Week ${state.overallWeek}, Session A ready`;
-    }
-    return `Week ${state.overallWeek} starts — Session A ready`;
+/* Shelved for possible future use: a "copy to ALL remaining sets" version, in case
+   a one-tap fill-the-rest button turns out to be wanted later instead of/alongside
+   the simpler per-set copyToNextSet above. Not wired to any button right now.
+function copyToAllRemainingSets(exi, setNum){
+  const {progId, draftKey} = currentDraftKey();
+  const st = state.programs[progId];
+  const prog = PROGRAMS[state.activeProgram];
+  const {entry, dayIdx} = getPos(state.activeProgram);
+  const ex = prog.blocks[entry.blockIndex].days[dayIdx][exi];
+  if(!st.draft[draftKey][exi]) st.draft[draftKey][exi]={};
+  const dEx = st.draft[draftKey][exi];
+  const cur = dEx[`set${setNum}`] || {};
+  for(let s=setNum+1; s<=ex.sets; s++){
+    if(!dEx[`set${s}`]) dEx[`set${s}`]={};
+    dEx[`set${s}`].weight = cur.weight||'';
+    dEx[`set${s}`].reps = cur.reps||'';
   }
+  saveState();
+  renderTrain();
+}
+*/
+function updateNote(exi, val){
+  const {progId, draftKey} = currentDraftKey();
+  const st = state.programs[progId];
+  if(!st.draft[draftKey][exi]) st.draft[draftKey][exi]={};
+  st.draft[draftKey][exi].note = val;
+  saveState();
+}
+function currentDraftKey(){
+  const progId = state.activeProgram;
+  const {entry, dayIdx} = getPos(progId);
+  return {progId, draftKey:`${entry.week}_${dayIdx}`};
 }
 
-function saveSession() {
-  const btn = document.getElementById('saveBtn');
-  const exercises = currentPhase().sessions[state.session];
-  const nSets = numSets();
-  const key = sessionKey();
-  const user = localStorage.getItem('fctraining_name')||'Alex';
-  const sets = [];
-  exercises.forEach((ex,ei) => {
-    const exKey = `${key}_ex${ei}`;
-    for (let s=0; s<nSets; s++) {
-      const sk = `${exKey}_s${s}`;
-      const sd = state.setData[sk]||{};
-      sets.push({exercise:ex.name, set:s+1, weight:sd.weight||'', reps:sd.reps||'', notes:sd.note||'', ticked:state.ticked[sk]||false});
-    }
+/* ============ SWAP / INFO MODALS ============ */
+function openInfo(exi){
+  const progId = state.activeProgram; const prog = PROGRAMS[progId];
+  const {entry, dayIdx} = getPos(progId);
+  const ex = prog.blocks[entry.blockIndex].days[dayIdx][exi];
+  const info = EX[ex.name] || {};
+  let html = `<button class="close" onclick="closeModal()">✕</button><h3>${escapeHtml(ex.name)}</h3>
+    <div class="ex-meta">${ex.sets}×${ex.reps} · RPE ${ex.rpe} · rest ${ex.rest} min</div>
+    <ul class="cuelist"><li>${escapeHtml(info.cue||'')}</li></ul>`;
+  if(info.video){ html += `<a class="videolink" target="_blank" href="${info.video.url}">▶️ ${escapeHtml(info.video.title)}</a>`; }
+  if(info.sub){ html += `<div class="subbox"><b>Substitution available:</b> ${escapeHtml(info.sub)}<br><span class="small">Keep the same sets/reps/rest if you swap.</span></div>`; }
+  if(info.caution && state.cautionOn){ html += `<div class="cautionbox"><b>⚠️ Caution flag:</b> ${escapeHtml(info.caution)}</div>`; }
+  document.getElementById('modalBody').innerHTML = html;
+  document.getElementById('modalOverlay').classList.add('show');
+}
+function openSwap(exi){
+  const progId = state.activeProgram; const prog = PROGRAMS[progId];
+  const {entry, dayIdx} = getPos(progId);
+  const ex = prog.blocks[entry.blockIndex].days[dayIdx][exi];
+  const info = EX[ex.name] || {};
+  let html = `<button class="close" onclick="closeModal()">✕</button><h3>Swap ${escapeHtml(ex.name)}</h3>
+    <p class="small">Substitute from the programme's swap list. Sets/reps/rest stay the same.</p>
+    <div class="subbox" style="cursor:pointer" onclick="doSwap(${exi}, '${escapeHtml(info.sub||'').replace(/'/g,"\\'")}')">${escapeHtml(info.sub||'')}</div>
+    <div style="margin-top:12px"><button class="secondary" style="width:100%" onclick="doSwap(${exi}, null)">Revert to original exercise</button></div>`;
+  document.getElementById('modalBody').innerHTML = html;
+  document.getElementById('modalOverlay').classList.add('show');
+}
+function doSwap(exi, subText){
+  const {progId, draftKey} = currentDraftKey();
+  const st = state.programs[progId];
+  if(!st.draft[draftKey][exi]) st.draft[draftKey][exi]={};
+  st.draft[draftKey][exi].swap = subText || null;
+  saveState();
+  closeModal();
+  renderTrain();
+}
+function closeModal(){ document.getElementById('modalOverlay').classList.remove('show'); }
+
+/* ============ SESSION SAVE / RESET / ADVANCE ============ */
+function resetSession(){
+  const {progId, draftKey} = currentDraftKey();
+  state.programs[progId].draft[draftKey] = {};
+  saveState(); renderTrain();
+}
+function saveSession(){
+  const progId = state.activeProgram; const prog = PROGRAMS[progId];
+  const {entry, dayIdx} = getPos(progId);
+  const dayExercises = prog.blocks[entry.blockIndex].days[dayIdx];
+  const draftKey = `${entry.week}_${dayIdx}`;
+  const st = state.programs[progId];
+  const draft = st.draft[draftKey] || {};
+
+  const exercisesOut = dayExercises.map((ex,exi)=>{
+    const dEx = draft[exi] || {};
+    const sets = [];
+    for(let s=1; s<=ex.sets; s++){ const sd = dEx[`set${s}`]||{}; sets.push({weight:sd.weight||'', reps:sd.reps||'', done:!!sd.done}); }
+    return {name: dEx.swap || ex.name, swappedFrom: dEx.swap? ex.name : null, sets, notes: dEx.note||''};
   });
+
   const record = {
-    id:Date.now(), user, date:new Date().toISOString().split('T')[0],
-    overallWeek:state.overallWeek, phase:getPhaseIndex()+1,
-    weekType:currentWeekType().label, session:state.session,
-    sessionName:{A:'Upper Push/Pull',B:'Lower Body',C:'Full Body'}[state.session], sets
+    program: progId, programLabel: prog.label, week: entry.week, deload: entry.deload,
+    dayIndex: dayIdx, dayLabel: prog.dayLabels[dayIdx], date: new Date().toISOString().slice(0,10),
+    savedAt: Date.now(), user: state.name, exercises: exercisesOut
   };
-  const history = JSON.parse(localStorage.getItem('fctraining_history')||'[]');
   history.unshift(record);
-  localStorage.setItem('fctraining_history', JSON.stringify(history));
+  saveHistory();
 
-  // Advance to next session/week/phase before re-rendering
-  const nextMsg = advanceToNextSession();
+  // push to sheets
+  if(state.sheetsUrl){ pushToSheets(record); }
+
+  // clear draft, advance
+  st.draft[draftKey] = {};
+  advanceSequence(progId);
+  saveState();
   renderAll();
-
-  const url = localStorage.getItem('fctraining_sheetsUrl');
-  if (url) {
-    btn.disabled=true; btn.textContent='Syncing…';
-    fetch(url, {method:'POST', body:JSON.stringify(record)})
-      .then(r=>r.json())
-      .then(()=>{ btn.disabled=false; btn.textContent='Save session'; showToast(nextMsg); })
-      .catch(()=>{ btn.disabled=false; btn.textContent='Save session'; showToast('Saved — ' + nextMsg, false); });
-  } else {
-    showToast(nextMsg);
-  }
+  showToast(advanceToastMessage(progId));
+}
+function advanceSequence(progId){
+  const {totalSessions} = getPos(progId);
+  const st = state.programs[progId];
+  st.seqIndex = (st.seqIndex + 1) % totalSessions; // loop back to Week 1 / programme complete
+}
+function advanceToastMessage(progId){
+  const {entry, dayIdx, seqIndex} = getPos(progId);
+  const prog = PROGRAMS[progId];
+  if(seqIndex===0) return `Session saved! Programme complete — looping back to Week 1. Nice work.`;
+  if(dayIdx===0 && !entry.deload) return `Session saved! Week ${entry.week} starts — ${prog.dayLabels[0]} ready.`;
+  if(dayIdx===0 && entry.deload) return `Session saved! Deload week ready — ease off the intensity a little.`;
+  return `Session saved! Next up: ${prog.dayLabels[dayIdx]}.`;
+}
+function showToast(msg){
+  const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show');
+  setTimeout(()=> t.classList.remove('show'), 3500);
 }
 
-// ── History ────────────────────────────────────────────────────────────────────
-function renderHistory() {
-  const history = JSON.parse(localStorage.getItem('fctraining_history')||'[]');
-  const el = document.getElementById('historyList');
-  if (!history.length) {
-    el.innerHTML='<div class="history-empty"><p>No sessions logged yet.</p><p style="margin-top:8px;font-size:12px">Save a session to see it here.</p></div>';
-    return;
-  }
-  el.innerHTML = history.map(r => {
-    const done = r.sets.filter(s=>s.ticked).length;
-    const exList = [...new Set(r.sets.map(s=>s.exercise))].map(ex => {
-      const exSets = r.sets.filter(s=>s.exercise===ex&&s.weight);
-      return exSets.length
-        ? `<span class="history-set">${ex}: ${exSets.map(s=>s.weight+'kg×'+s.reps).join(', ')}</span>`
-        : `<span class="history-set">${ex}</span>`;
+/* ============ GOOGLE SHEETS SYNC ============ */
+function pushToSheets(record){
+  const rows = [];
+  record.exercises.forEach(ex=>{
+    ex.sets.forEach((s,i)=>{
+      rows.push({exercise:ex.name, set:i+1, weight:s.weight, reps:s.reps, notes:ex.notes, ticked:s.done});
+    });
+  });
+  const payload = {
+    user: state.name, date: record.date, program: record.programLabel, week: record.week,
+    deload: record.deload, dayIndex: record.dayIndex, dayLabel: record.dayLabel, sets: rows
+  };
+  fetch(state.sheetsUrl, {method:'POST', body: JSON.stringify(payload)}).catch(()=>{});
+}
+
+/* ============ PROGRESS TAB ============ */
+function isoWeekKey(dateStr){
+  const dt = new Date(dateStr+'T00:00:00');
+  const day = (dt.getUTCDay()+6)%7;
+  dt.setUTCDate(dt.getUTCDate()-day+3);
+  const firstThu = new Date(Date.UTC(dt.getUTCFullYear(),0,4));
+  const weekNo = 1+Math.round(((dt-firstThu)/86400000-3+((firstThu.getUTCDay()+6)%7))/7);
+  return `${dt.getUTCFullYear()}-W${weekNo}`;
+}
+function renderProgress(){
+  const thisWeek = isoWeekKey(new Date().toISOString().slice(0,10));
+  const tallies = {};
+  history.filter(h=> isoWeekKey(h.date)===thisWeek).forEach(h=>{
+    h.exercises.forEach(ex=>{
+      const info = EX[ex.name] || EX[ex.swappedFrom] || {};
+      const muscle = info.muscle || 'other';
+      const setsLogged = ex.sets.filter(s=>s.done || s.weight).length;
+      tallies[muscle] = (tallies[muscle]||0) + setsLogged;
+    });
+  });
+  const muscles = ['chest','back','shoulders','biceps','triceps','quads','hamstrings','glutes','calves','core'];
+  document.getElementById('muscleTally').innerHTML = muscles.map(m=>{
+    const v = tallies[m]||0;
+    const cls = v===0?'low':(v>=10&&v<=15?'ok':(v>15?'high':'low'));
+    const pct = Math.min(100, Math.round(v/15*100));
+    return `<div class="mtile"><div class="mname">${m}</div><div class="mval ${cls}">${v} sets</div><div class="mbar"><i style="width:${pct}%"></i></div></div>`;
+  }).join('');
+
+  const keyLifts = ["Back Squat","Deadlift","Barbell Bench Press","Military Press","Romanian Deadlift","Barbell Hip Thrust"];
+  let trendHtml = '';
+  keyLifts.forEach(name=>{
+    const points = [];
+    history.slice().reverse().forEach(h=>{
+      h.exercises.forEach(ex=>{
+        if(ex.name===name){
+          let best=0;
+          ex.sets.forEach(s=>{ const w=parseFloat(s.weight), r=parseFloat(s.reps); if(w && r){ const e1rm = w*(1+r/30); if(e1rm>best) best=e1rm; } });
+          if(best>0) points.push({date:h.date, val:Math.round(best)});
+        }
+      });
+    });
+    if(points.length>=2){
+      const max = Math.max(...points.map(p=>p.val)), min = Math.min(...points.map(p=>p.val));
+      const range = max-min || 1;
+      const w=300,h=34;
+      const pts = points.map((p,i)=> `${(i/(points.length-1))*w},${h-((p.val-min)/range)*h}`).join(' ');
+      trendHtml += `<div class="lifttrend"><div class="lt-head"><b>${name}</b><span>${points[points.length-1].val}kg est. 1RM</span></div>
+        <svg class="spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><polyline points="${pts}" fill="none" stroke="#4fa8ff" stroke-width="2"/></svg></div>`;
+    }
+  });
+  document.getElementById('liftTrends').innerHTML = trendHtml || `<p class="small">Log the same lift at least twice to see a trend here.</p>`;
+}
+
+/* ============ HISTORY TAB ============ */
+function renderHistory(){
+  if(history.length===0){ document.getElementById('historyList').innerHTML = `<p class="small">No sessions logged yet.</p>`; return; }
+  document.getElementById('historyList').innerHTML = history.map(h=>{
+    const rows = h.exercises.map(ex=>{
+      const setsStr = ex.sets.map(s=> `${s.weight||'-'}kg×${s.reps||'-'}${s.done?' ✓':''}`).join(', ');
+      return `<div class="histrow"><span>${escapeHtml(ex.name)}</span><span class="small">${setsStr}</span></div>`;
     }).join('');
-    return `<div class="history-item">
-      <div class="history-meta">
-        <div class="history-label">Session ${r.session} — ${r.sessionName}</div>
-        <div class="history-date">${r.date} · W${r.overallWeek} · Ph${r.phase}</div>
-      </div>
-      <div style="font-size:12px;color:var(--muted);margin-bottom:4px">${r.weekType} · ${done}/${r.sets.length} sets ticked</div>
-      <div class="history-sets">${exList}</div>
-    </div>`;
+    return `<div class="histitem"><div class="hh"><b>${h.date}</b><span>${h.programLabel} · Wk ${h.week}${h.deload?' (Deload)':''} · ${h.dayLabel}</span></div>${rows}</div>`;
   }).join('');
 }
 
-// ── Settings ───────────────────────────────────────────────────────────────────
-function saveSettings() {
-  const name = document.getElementById('settingsName').value.trim();
-  const url = document.getElementById('sheetsUrl').value.trim();
-  if (name) localStorage.setItem('fctraining_name', name);
-  if (url) localStorage.setItem('fctraining_sheetsUrl', url);
-  showToast('Settings saved ✓');
-}
+/* ============ SETTINGS TAB ============ */
+function renderSettings(){
+  document.getElementById('setName').value = state.name||'';
+  document.getElementById('setSheetsUrl').value = state.sheetsUrl||'';
+  const sel = document.getElementById('setProgramSelect');
+  sel.innerHTML = Object.values(PROGRAMS).map(p=> `<option value="${p.id}" ${p.id===state.activeProgram?'selected':''}>${p.label} (${p.daysPerWeek}x/week)</option>`).join('');
 
-function syncSettingsSelects() {
-  const sel = document.getElementById('overallWeek'); if (sel) sel.value=state.overallWeek;
-  const nm = document.getElementById('settingsName'); if (nm) nm.value=localStorage.getItem('fctraining_name')||'';
-  const ur = document.getElementById('sheetsUrl'); if (ur) ur.value=localStorage.getItem('fctraining_sheetsUrl')||'';
-  renderSettingsCycleOverview();
-}
+  const progId = state.activeProgram; const prog = PROGRAMS[progId];
+  const {seq, weekPointer} = getPos(progId);
+  document.getElementById('deloadSwitch').className = 'switch ' + (state.programs[progId].deload?'on':'');
+  document.getElementById('cautionSwitch').className = 'switch ' + (state.cautionOn?'on':'');
 
-function updateWeekFromSettings() {
-  state.overallWeek=parseInt(document.getElementById('overallWeek').value);
+  const weekSel = document.getElementById('setWeekSelect');
+  const uniqueWeeks = [...new Set(seq.map(s=>s.week))];
+  weekSel.innerHTML = uniqueWeeks.map(w=> `<option value="${w}">Week ${w}${w==='Deload'?' (Deload)':''}</option>`).join('');
+  const daySel = document.getElementById('setDaySelect');
+  daySel.innerHTML = prog.dayLabels.map((l,i)=> `<option value="${i}">${l}</option>`).join('');
+
+  document.getElementById('progOverview').innerHTML = `<div class="overview-grid">${seq.map((e,i)=>
+    `<div class="cell ${i===weekPointer?'cur':(e.deload?'deload':'')}">Wk ${e.week}</div>`
+  ).join('')}</div>`;
+}
+function saveSettings(){
+  state.name = document.getElementById('setName').value;
+  state.sheetsUrl = document.getElementById('setSheetsUrl').value;
+  saveState();
+  showToast('Settings saved.');
+}
+function toggleDeload(){
+  const progId = state.activeProgram;
+  state.programs[progId].deload = !state.programs[progId].deload;
+  state.programs[progId].seqIndex = 0;
   saveState(); renderAll();
 }
-
-function renderSettingsCycleOverview() {
-  const el=document.getElementById('settingsCycleOverview'); if(!el) return;
-  el.innerHTML = PHASES.map((phase,pi) =>
-    `<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:8px">
-      <div style="font-size:12px;font-weight:600;margin-bottom:4px;color:var(--accent)">${phase.name}</div>
-      <div style="font-size:11px;color:var(--muted);margin-bottom:6px">Weeks ${pi*3+1}–${pi*3+3} · ${phase.desc}</div>
-      <div style="font-size:11px;color:var(--muted)">
-        A: ${phase.sessions.A.map(e=>e.name).join(', ')}<br>
-        B: ${phase.sessions.B.map(e=>e.name).join(', ')}<br>
-        C: ${phase.sessions.C.map(e=>e.name).join(', ')}
-      </div>
-    </div>`
-  ).join('');
+function toggleCaution(){ state.cautionOn = !state.cautionOn; saveState(); renderAll(); }
+function applyManualPosition(){
+  const progId = state.activeProgram;
+  const week = document.getElementById('setWeekSelect').value;
+  const dayIdx = parseInt(document.getElementById('setDaySelect').value);
+  const {seq} = getPos(progId);
+  const weekPointer = seq.findIndex(e=> String(e.week)===String(week));
+  if(weekPointer>=0){ state.programs[progId].seqIndex = weekPointer * PROGRAMS[progId].daysPerWeek + dayIdx; }
+  saveState(); renderAll(); showTab('train');
 }
-
-function exportData() {
-  const data={state,history:JSON.parse(localStorage.getItem('fctraining_history')||'[]')};
-  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
-  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
-  a.download=`art-export-${new Date().toISOString().split('T')[0]}.json`; a.click();
+function exportData(){
+  const blob = new Blob([JSON.stringify({state, history}, null, 2)], {type:'application/json'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'alex-training-export.json'; a.click();
 }
+function clearAllData(){
+  if(confirm('This will permanently delete all local training data. Export first if you want a backup. Continue?')){
+    localStorage.removeItem(LS_STATE); localStorage.removeItem(LS_HIST);
+    state = loadState(); history = loadHistory(); renderAll();
+    showToast('All local data cleared.');
+  }
+}
+function dismissCautionBanner(){ state.cautionBannerDismissed = true; saveState(); document.getElementById('cautionBanner').style.display='none'; }
 
-// ── Page switching ─────────────────────────────────────────────────────────────
-function showPage(id, tabEl) {
+/* ============ TABS ============ */
+function showTab(name){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  document.getElementById('page-'+id).classList.add('active');
-  if (tabEl) tabEl.classList.add('active');
-  document.getElementById('saveBar').style.display = id==='train'?'flex':'none';
-  if (id==='history') renderHistory();
-  if (id==='settings') syncSettingsSelects();
+  document.getElementById('page-'+name).classList.add('active');
+  document.querySelectorAll('.tabs button').forEach(b=>b.classList.remove('active'));
+  document.querySelector(`.tabs button[data-tab="${name}"]`).classList.add('active');
+  if(name==='progress') renderProgress();
+  if(name==='history') renderHistory();
+  if(name==='settings') renderSettings();
 }
 
-function showToast(msg, err=false) {
-  const t=document.getElementById('toast');
-  t.textContent=msg; t.className='toast'+(err?' err':'');
-  t.style.display='block';
-  setTimeout(()=>t.style.display='none', msg.length > 30 ? 4000 : 2800);
-}
+/* ============ UTIL ============ */
+function escapeHtml(str){ return String(str).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
-// ── Boot ───────────────────────────────────────────────────────────────────────
-loadState();
+function renderAll(){
+  renderProgPicker();
+  renderTrain();
+  if(document.getElementById('page-progress').classList.contains('active')) renderProgress();
+  if(document.getElementById('page-history').classList.contains('active')) renderHistory();
+  if(document.getElementById('page-settings').classList.contains('active')) renderSettings();
+}
 renderAll();
 </script>
 </body>
