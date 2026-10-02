@@ -226,7 +226,9 @@ a{color:var(--accent);}
 <script>
 /* ============ EXERCISE MASTER DATA ============ */
 const EX = {
-"Back Squat": {muscle:"quads", cue:"Sit back and down, 15° toe flare, drive your knees out laterally.", video:{url:"https://www.youtube.com/watch?v=dW5-C1fsMjk",title:"Back Squat Technique"}, sub:"Leg Press + 15 reps of lower back extensions", caution:"Heavy axial-loading compound lift with hard bracing — check in with your surgeon/physio on load before pushing this hard."},
+"Back Squat": {muscle:"quads", cue:"Sit back and down, 15° toe flare, drive your knees out laterally.", video:{url:"https://www.youtube.com/watch?v=dW5-C1fsMjk",title:"Back Squat Technique"}, sub:"Hack Squat", caution:"Heavy axial-loading compound lift with hard bracing — check in with your surgeon/physio on load before pushing this hard."},
+"Hack Squat": {muscle:"quads", cue:"Feet shoulder-width on the platform, back and shoulders braced against the pad, drive through your heels, control the descent.", video:{url:"https://www.youtube.com/results?search_query=hack+squat+technique",title:"Hack Squat — technique reference"}, sub:"Back Squat", caution:"Still a loaded squat pattern — the back pad removes the free-standing balance demand of a Back Squat, which is a genuine reduction, but it's not a low-bracing movement. Go carefully and check with your surgeon/physio if you're ever unsure."},
+"Tempo Hack Squat": {muscle:"quads", cue:"Full 2-second lowering phase. Feet shoulder-width on the platform, back and shoulders braced against the pad, drive through your heels.", video:{url:"https://www.youtube.com/results?search_query=tempo+hack+squat+technique",title:"Tempo Hack Squat — technique reference"}, sub:"Tempo Back Squat", caution:"Same loaded squat pattern as Hack Squat, just slowed down (more time under tension) — the back pad reduces balance demand vs. a free Back Squat, but still worth going carefully."},
 "Goblet Squat": {muscle:"quads", cue:"Hold a dumbbell directly underneath your chin, sit back and down, push your knees out laterally.", video:{url:"https://www.youtube.com/watch?v=zBV3ceGyAxw",title:"Goblet Squat (PureGym)"}, sub:null, caution:"Loaded squat pattern — lighter bracing demand than Back Squat, but still worth being mindful of."},
 "Deadlift": {muscle:"hamstrings", cue:"Brace your lats, chest tall, hips high, pull the slack out of the bar prior to moving it off the ground.", video:{url:"https://www.youtube.com/watch?v=fc4_hq7tjkU",title:"Deadlift Technique"}, sub:"Leg Press + 15 reps of lower back extensions", caution:"Heavy axial-loading compound lift with hard bracing — check in with your surgeon/physio on load before pushing this hard."},
 "Romanian Deadlift": {muscle:"hamstrings", cue:"Maintain a neutral lower back, set your hips back, don't allow your spine to round.", video:{url:"https://www.youtube.com/watch?v=SE-2Y-3a1pY",title:"Romanian Deadlift Technique"}, sub:"Glute Ham Raise", caution:"Loaded hip-hinge — moderate bracing demand, watch for any spinal rounding under fatigue."},
@@ -234,7 +236,7 @@ const EX = {
 "Dumbbell Single-Leg Hip Thrust": {muscle:"glutes", cue:"Place the dumbbell on your working thigh, tuck your chin and rib cage down, only move your hips.", video:{url:"https://www.youtube.com/watch?v=1u-b25VJVFU",title:"Single-Leg Hip Thrust (PureGym)"}, sub:null, caution:null},
 "Leg Extension": {muscle:"quads", cue:"Focus on squeezing your quads to make the weight move.", video:{url:"https://www.youtube.com/watch?v=1CHV0-armIc",title:"Leg Extension Technique"}, sub:"Not mandatory for quad growth — simply remove from the programme if unable to perform", caution:null},
 "Single-Leg Leg Extension": {muscle:"quads", cue:"Focus on squeezing your quads to make the weight move.", video:{url:"https://www.youtube.com/watch?v=3VIpG6rtFAc",title:"Single-Leg Leg Extension Technique"}, sub:null, caution:null},
-"Leg Press": {muscle:"quads", cue:"Medium feet placement on the platform, don't allow your lower back to round.", video:{url:"https://www.youtube.com/watch?v=qCR9bN3G1t4",title:"Seated Leg Press (PureGym)"}, sub:null, caution:null},
+"Leg Press": {muscle:"quads", cue:"Medium feet placement on the platform, don't allow your lower back to round.", video:{url:"https://www.youtube.com/watch?v=qCR9bN3G1t4",title:"Seated Leg Press (PureGym)"}, sub:"Deadlift", caution:null},
 "Lying Leg Curl": {muscle:"hamstrings", cue:"Focus on squeezing your hamstrings to make the weight move.", video:{url:"https://www.youtube.com/watch?v=1Tq3QdYUuHs",title:"Lying Leg Curl Technique"}, sub:"Dumbbell Leg Curl (place a dumbbell between your legs, lie on a bench, curl it up)", caution:null},
 "Single-Leg Lying Leg Curl": {muscle:"hamstrings", cue:"Focus on squeezing your hamstrings to make the weight move.", video:{url:"https://www.youtube.com/watch?v=lQSlJHtsnRA",title:"Single-Leg Lying Leg Curl Technique"}, sub:null, caution:null},
 "Seated Leg Curl": {muscle:"hamstrings", cue:"Focus on squeezing your hamstrings to make the weight move.", video:{url:"https://www.youtube.com/watch?v=ELOCsoDSmrg",title:"Seated Leg Curl (ScottHermanFitness)"}, sub:null, caution:null},
@@ -497,7 +499,7 @@ function dSec(name,sets,reps,rpeByWeek,wi,rest){ return d(name,sets,reps,rpeByWe
 function hfB1Day1(wi){
   const sq = [[4,"4","82.5%"],[3,"6","77.5%"],[4,"4","85%"],[3,"6","80%"]][wi];
   return [
-    dPrimary("Back Squat", sq[0], sq[1], sq[2], "2-4"),
+    dPrimary("Hack Squat", sq[0], sq[1], sq[2], "2-4"),
     dSec("Dumbbell Incline Press", 3, "8", [8,8,9,9], wi, "2-3"),
     dSec("Lying Leg Curl", 3, "10", [6,6,7,8], wi, "1-2"),
     dSec("Pronated Pulldown", 3, "10", [7,7,7,8], wi, "2-3"),
@@ -528,9 +530,9 @@ function hfB1Day3(wi){
   ];
 }
 function hfB1Day4(wi){
-  const dl = [[4,"2","85%","Deadlift"],[3,"5","80%","Reset Deadlift"],[4,"2","87.5%","Deadlift"],[3,"5","82.5%","Reset Deadlift"]][wi];
+  const dl = [[4,"2","85%","Leg Press"],[3,"5","80%","Reset Leg Press"],[4,"2","87.5%","Leg Press"],[3,"5","82.5%","Reset Leg Press"]][wi];
   return [
-    dPrimary(dl[3], dl[0], dl[1], dl[2], "3-5", "Deadlift"),
+    dPrimary(dl[3], dl[0], dl[1], dl[2], "3-5", "Leg Press"),
     dSec("Dip", 3, "10", [8,8,9,9], wi, "2-3"),
     dSec("Glute Ham Raise", 3, "10", [6,7,7,8], wi, "1-2"),
     dSec("Leg Extension", 3, "15", [7,7,7,8], wi, "1-2"),
@@ -558,7 +560,7 @@ function hfB2Day1(wi){
   const bo  = [[2,"5","82.5%"],[2,"3","85%"],[2,"8","70%"],[2,"2","85%"]][wi];
   const ohp = [[4,"6","80%"],[4,"8","75%"],[4,"10","65%"],[4,"5","80%"]][wi];
   return [
-    ...dPrimaryPair("Back Squat", top[0], top[1], top[2], bo[0], bo[1], bo[2], "2-4"),
+    ...dPrimaryPair("Hack Squat", top[0], top[1], top[2], bo[0], bo[1], bo[2], "2-4"),
     dPrimary("Barbell Overhead Press", ohp[0], ohp[1], ohp[2], "2-3", "Military Press"),
     dSec("Swiss Ball Leg Curl", 3, "10", [7,7,8,8], wi, "1-2"),
     dSec("Chin-Up", 4, "8", [7,7,8,8], wi, "2-3"),
@@ -593,7 +595,7 @@ function hfB2Day4(wi){
   const top = [[1,"2","90%"],[1,"4","85%"],[1,"6","82.5%"],[1,"2","95%"]][wi];
   const bo  = [[3,"2","80%"],[3,"4","75%"],[3,"6","70%"],[1,"3","85%"]][wi];
   const base = [
-    ...dPrimaryPair("Deadlift", top[0], top[1], top[2], bo[0], bo[1], bo[2], "3-5"),
+    ...dPrimaryPair("Leg Press", top[0], top[1], top[2], bo[0], bo[1], bo[2], "3-5"),
     dSec("Decline Bench Press", 4, "8", [7,7,7,8], wi, "2-3"),
     dSec("Glute Ham Raise", 4, "10", [7,7,8,8], wi, "1-2"),
     dSec("Leg Extension", 4, "12", [7,7,8,8], wi, "1-2"),
@@ -621,7 +623,7 @@ function hfB2Day5(wi){
 }
 
 const HF_WEEK9_DAYS = [
-  [ dPrimary("Back Squat",4,"4","75%","2-4"),
+  [ dPrimary("Hack Squat",4,"4","75%","2-4"),
     dPrimary("Barbell Bench Press",3,"4","70%","2-3"),
     d("Lying Leg Curl",3,"10",6,"1-2"),
     d("Pronated Pulldown",3,"10",6,"1-2"),
@@ -629,7 +631,7 @@ const HF_WEEK9_DAYS = [
     d("Cable Crunch",3,"12",6,"1-2") ],
   [ dPrimary("Barbell Bench Press",3,"3","80%","2-4"),
     d("Low to High Cable Flye",3,"15",6,"1-2"),
-    dPrimary("Deadlift",3,"3","75%","2-3"),
+    dPrimary("Leg Press",3,"3","75%","2-3"),
     d("Chest-Supported T-Bar Row",3,"15",6,"1-3"),
     d("Dumbbell Lateral Raise",3,"10",6,"1-3"),
     d("Tricep Pressdown",3,"15",6,"1-2"),
@@ -640,7 +642,7 @@ const HF_WEEK9_DAYS = [
     d("Standing Calf Raise",4,"8",6,"1-2"),
     d("Cable Rope Upright Row",3,"10",6,"1-2"),
     d("Hammer Curl",3,"8",6,"1-2") ],
-  [ dPrimary("Deadlift",3,"2","80%","3-5"),
+  [ dPrimary("Leg Press",3,"2","80%","3-5"),
     d("Decline Bench Press",3,"8",7,"2-3"),
     d("Glute Ham Raise",3,"10",6,"1-2"),
     d("Leg Extension",3,"15",6,"1-2"),
@@ -659,7 +661,7 @@ const HF_WEEK9_DAYS = [
 ];
 
 const HF_WEEK10_DAYS = [
-  [ ...dPrimaryPair("Back Squat",1,"AMRAP","90%",2,"6","80%","2-4"),
+  [ ...dPrimaryPair("Hack Squat",1,"AMRAP","90%",2,"6","80%","2-4"),
     d("Dumbbell Incline Press",3,"8",5,"2-3"),
     d("Lying Leg Curl",3,"10",8,"1-2"),
     d("Pronated Pulldown",3,"10",8,"2-3"),
@@ -678,7 +680,7 @@ const HF_WEEK10_DAYS = [
     d("Standing Calf Raise",4,"8",8,"1-2"),
     d("Cable Rope Upright Row",3,"10",8,"1-2"),
     d("Hammer Curl",3,"8",10,"1-2") ],
-  [ ...dPrimaryPair("Deadlift",1,"AMRAP","90%",2,"5","85%","3-5"),
+  [ ...dPrimaryPair("Leg Press",1,"AMRAP","90%",2,"5","85%","3-5"),
     d("Decline Bench Press",3,"8",7,"2-3"),
     d("Glute Ham Raise",3,"10",8,"1-2"),
     d("Leg Extension",3,"15",8,"1-2"),
@@ -743,8 +745,8 @@ function pplB1Day1(wi){ // Legs #1
   const dlSets = wi>=4 ? 3 : 2;
   const dlReps = wi>=4 ? "10" : "8";
   return [
-    dPrimary("Back Squat", 4, sqReps, PPL_B1_SQUAT_PCT[wi]+"%", "3-4"),
-    dPrimary("Deadlift", dlSets, dlReps, PPL_B1_DL1_PCT[wi]+"%", "3-4"),
+    dPrimary("Hack Squat", 4, sqReps, PPL_B1_SQUAT_PCT[wi]+"%", "3-4"),
+    dPrimary("Leg Press", dlSets, dlReps, PPL_B1_DL1_PCT[wi]+"%", "3-4"),
     d("Barbell Hip Thrust", 3, "10-12", 6, "2-3"),
     d("Dumbbell Walking Lunge", 2, "20 each leg", 7, "1-2"),
     d("A1: Leg Extension", 3, "15", 7, "0", "Leg Extension"),
@@ -780,9 +782,13 @@ function pplB1Day3(wi){ // Pull #1 (flat all 8 weeks — no set/RPE changes tabu
     d("Dumbbell Preacher Curl", 3, "12", 7, "1-2")
   ];
 }
-function pplB1Day4(wi){ // Legs #2
+function pplB1Day4(wi){ // Legs #2 — Leg Press is already prescribed later this same day
+  // (Single-Leg Leg Press), so Deadlift's default here is Glute Ham Raise instead, to avoid a
+  // second "Leg Press"-family row in one session. Re-prescribed at a normal GHR rep range
+  // (rather than Deadlift's low-rep %1RM scheme), consistent with how Glute Ham Raise is used
+  // as an accessory elsewhere in this file.
   return [
-    dPrimary("Deadlift", 4, "4", PPL_B1_DL2_PCT[wi]+"%", "3-4"),
+    d("Glute Ham Raise", 3, "10-12", 7, "1-2"),
     dPrimary("Front Squat", 3, "6-8", PPL_B1_FSQ_PCT[wi]+"%", "2-3"),
     d("Cable Pull Through", 3, "20", 8, "1-2", "Cable Pull-Through"),
     d("Single-Leg Leg Press", 3, "10-12", 7, "1-2"),
@@ -823,8 +829,8 @@ function pplB1Day6(wi){ // Pull #2
 // weeks, and is mandatory, not the optional Nippard-Fundamentals-style deload toggle).
 const PPL_B2_DELOAD_DAYS = [
   [ // Legs #1
-    dPrimary("Deadlift", 4, "3", "75%", "3-4"),
-    dPrimary("Tempo Back Squat", 2, "6", "60%", "3-4"),
+    dPrimary("Leg Press", 4, "3", "75%", "3-4"),
+    dPrimary("Tempo Hack Squat", 2, "6", "60%", "3-4"),
     d("Round-Back Dumbbell 45° Hyperextension", 2, "20", 7, "1-2"),
     d("Smith Machine Reverse Lunge", 2, "15", 7, "1-2"),
     d("Enhanced-Eccentric Leg Extension", 2, "12", 6, "1-2"),
@@ -853,7 +859,7 @@ const PPL_B2_DELOAD_DAYS = [
     d("Spider Curl", 3, "15-20", 8, "1-2")
   ],
   [ // Legs #2
-    dPrimary("Back Squat", 3, "4", "75%", "3-4"),
+    dPrimary("Hack Squat", 3, "4", "75%", "3-4"),
     d("Romanian Deadlift", 3, "8", 7, "2-3"),
     d("Pause Barbell Hip Thrust", 2, "10", 7, "1-2"),
     d("Slow Eccentric Goblet Squat", 2, "12 steps each leg", 6, "1-2"),
@@ -891,13 +897,13 @@ const PPL_B2_BENCH1_PCT    = [75,77.5,77.5,80,80,82.5];             // Barbell B
 const PPL_B2_BENCH2_PCT    = [75,77.5,77.5,80,80,82.5,82.5];        // Barbell Bench Press, Push#2
 const PPL_B2_MPCOMPLEX_PCT = [72.5,77.5,77.5,80,80,82.5,82.5];      // Military Press/Push Press Complex, Push#2
 
-function pplB2Day1(wi){ // Legs #1 — Week 16 (wi===6): Deadlift becomes the RPE9 retest
+function pplB2Day1(wi){ // Legs #1 — Week 16 (wi===6): Leg Press becomes the RPE9 retest
   const dlRow = wi===6
-    ? dPrimary("Deadlift (RPE9 Test — leave 1 in the tank, perfect form!)", 1, "1 (RPE9 test)", "90%", "3-5", "Deadlift")
-    : dPrimary("Deadlift", 5, "3", PPL_B2_DL1_PCT[wi]+"%", "3-4");
+    ? dPrimary("Leg Press (RPE9 Test — leave 1 in the tank, perfect form!)", 1, "1 (RPE9 test)", "90%", "3-5", "Leg Press")
+    : dPrimary("Leg Press", 5, "3", PPL_B2_DL1_PCT[wi]+"%", "3-4");
   return [
     dlRow,
-    dPrimary("Tempo Back Squat", 2, "6", PPL_B2_TEMPOSQ_PCT[wi]+"%", "3-4"),
+    dPrimary("Tempo Hack Squat", 2, "6", PPL_B2_TEMPOSQ_PCT[wi]+"%", "3-4"),
     d("Round-Back Dumbbell 45° Hyperextension", 2, "20", 8, "1-2"),
     d("Smith Machine Reverse Lunge", 3, "15", 9, "1-2"),
     d("Enhanced-Eccentric Leg Extension", 3, "12", 9, "1-2"),
@@ -935,7 +941,7 @@ function pplB2Day3(wi){ // Pull #1
 }
 function pplB2Day4(wi){ // Legs #2
   return [
-    dPrimary("Back Squat", 4, "5", PPL_B2_BACKSQ2_PCT[wi]+"%", "3-4"),
+    dPrimary("Hack Squat", 4, "5", PPL_B2_BACKSQ2_PCT[wi]+"%", "3-4"),
     d("Romanian Deadlift", 3, "8", 8, "2-3"),
     d("Pause Barbell Hip Thrust", 2, "10", 9, "1-2"),
     d("Slow Eccentric Goblet Squat", 2, "12 steps each leg", 8, "1-2"),
@@ -985,29 +991,29 @@ fullbody: { id:"fullbody", label:"Full Body", family:"nippard", finite:true, tot
   dayLabels:["Full Body #1","Full Body #2","Full Body #3"],
   blocks:[
     { label:"Weeks 1-4 · Strength Base", weeks:[1,2,3,4], days:[
-      [d("Back Squat",3,"6",7,"3-4"), d("Barbell Bench Press",3,"8",7,"3-4"), d("Lat Pulldown",3,"10",8,"2-3"), d("Romanian Deadlift",3,"10",7,"2-3"), d("Assisted Dip",3,"8",7,"1-2"), d("Standing Calf Raise",3,"10",8,"1-2"), d("Dumbbell Supinated Curl",3,"10",8,"1-2")],
-      [d("Deadlift",3,"5",7,"3-4"), d("Military Press",3,"8",8,"3-4"), d("Chest-Supported T-Bar Row",3,"12",8,"2-3"), d("Leg Extension",3,"12",8,"1-2"), d("Cable Flye",3,"12",8,"1-2"), d("Crunch",3,"12",7,"1-2"), d("Dumbbell Skull Crusher",3,"10",8,"1-2")],
+      [d("Hack Squat",3,"6",7,"3-4"), d("Barbell Bench Press",3,"8",7,"3-4"), d("Lat Pulldown",3,"10",8,"2-3"), d("Romanian Deadlift",3,"10",7,"2-3"), d("Assisted Dip",3,"8",7,"1-2"), d("Standing Calf Raise",3,"10",8,"1-2"), d("Dumbbell Supinated Curl",3,"10",8,"1-2")],
+      [d("Leg Press",3,"5",7,"3-4"), d("Military Press",3,"8",8,"3-4"), d("Chest-Supported T-Bar Row",3,"12",8,"2-3"), d("Leg Extension",3,"12",8,"1-2"), d("Cable Flye",3,"12",8,"1-2"), d("Crunch",3,"12",7,"1-2"), d("Dumbbell Skull Crusher",3,"10",8,"1-2")],
       [d("Dumbbell Walking Lunge",3,"10 (10 steps/leg)",8,"2-3"), d("Dumbbell Incline Press",3,"8",7,"2-3"), d("Reverse Grip Lat Pulldown",3,"10",8,"2-3"), d("Barbell Hip Thrust",3,"12",8,"2-3"), d("Seated Face Pull",3,"12",8,"1-2"), d("Dumbbell Lateral Raise",3,"10",8,"1-2"), d("Lying Leg Curl",3,"10",8,"1-2")]
     ]},
     { label:"Weeks 5-8 · Modified Strength Base", weeks:[5,6,7,8], days:[
-      [d("Back Squat",3,"8",8,"3-4"), d("Dumbbell Seated Shoulder Press",3,"10",8,"3-4"), d("Single-Arm Pulldown",3,"12",9,"2-3"), d("Barbell Hip Thrust",3,"8",9,"2-3"), d("Pec Deck",3,"15",9,"1-2"), d("Reverse Pec Deck",3,"15",9,"1-2"), d("Cable Lateral Raise",3,"12",9,"1-2")],
-      [d("Deadlift",3,"3",8,"3-4"), d("Close-Grip Bench Press",3,"5",7,"3-4"), d("Dumbbell Row",3,"12",8,"2-3"), d("Dumbbell Walking Lunge",3,"12 (12 steps/leg)",8,"1-2"), d("Assisted Dip",3,"12",8,"1-2"), d("Bicycle Crunch",3,"10",7,"1-2"), d("Single-Arm Cable Curl",3,"12",8,"1-2")],
-      [d("Back Squat",3,"5",8,"2-3"), d("Barbell Bench Press",3,"10",8,"2-3"), d("Neutral-Grip Pulldown",3,"15",8,"2-3"), d("Lying Leg Curl",3,"12",8,"2-3"), d("Seated Face Pull",3,"15",8,"1-2"), d("Single-Arm Rope Tricep Extension",3,"12",8,"1-2"), d("Standing Calf Raise",3,"10",8,"1-2")]
+      [d("Hack Squat",3,"8",8,"3-4"), d("Dumbbell Seated Shoulder Press",3,"10",8,"3-4"), d("Single-Arm Pulldown",3,"12",9,"2-3"), d("Barbell Hip Thrust",3,"8",9,"2-3"), d("Pec Deck",3,"15",9,"1-2"), d("Reverse Pec Deck",3,"15",9,"1-2"), d("Cable Lateral Raise",3,"12",9,"1-2")],
+      [d("Leg Press",3,"3",8,"3-4"), d("Close-Grip Bench Press",3,"5",7,"3-4"), d("Dumbbell Row",3,"12",8,"2-3"), d("Dumbbell Walking Lunge",3,"12 (12 steps/leg)",8,"1-2"), d("Assisted Dip",3,"12",8,"1-2"), d("Bicycle Crunch",3,"10",7,"1-2"), d("Single-Arm Cable Curl",3,"12",8,"1-2")],
+      [d("Hack Squat",3,"5",8,"2-3"), d("Barbell Bench Press",3,"10",8,"2-3"), d("Neutral-Grip Pulldown",3,"15",8,"2-3"), d("Lying Leg Curl",3,"12",8,"2-3"), d("Seated Face Pull",3,"15",8,"1-2"), d("Single-Arm Rope Tricep Extension",3,"12",8,"1-2"), d("Standing Calf Raise",3,"10",8,"1-2")]
     ]}
   ]},
 upperlower: { id:"upperlower", label:"Upper/Lower", family:"nippard", finite:true, totalWeeks:8, daysPerWeek:4,
   dayLabels:["Lower #1","Upper #1","Lower #2","Upper #2"],
   blocks:[
     { label:"Weeks 1-4 · Strength Base", weeks:[1,2,3,4], days:[
-      [d("Back Squat",3,"6",7,"3-4"), d("Romanian Deadlift",3,"10",7,"2-3"), d("Barbell Hip Thrust",3,"12",8,"2-3"), d("Leg Extension",3,"12",9,"1-2"), d("Lying Leg Curl",3,"12",9,"1-2"), d("Machine Seated Hip Abduction",3,"6",7,"1-2"), d("Crunch",3,"12",7,"1-2")],
+      [d("Hack Squat",3,"6",7,"3-4"), d("Romanian Deadlift",3,"10",7,"2-3"), d("Barbell Hip Thrust",3,"12",8,"2-3"), d("Leg Extension",3,"12",9,"1-2"), d("Lying Leg Curl",3,"12",9,"1-2"), d("Machine Seated Hip Abduction",3,"6",7,"1-2"), d("Crunch",3,"12",7,"1-2")],
       [d("Barbell Bench Press",3,"5",7,"3-4"), d("Lat Pulldown",3,"10",8,"2-3"), d("Military Press",3,"10",7,"3-4"), d("Chest-Supported T-Bar Row",3,"12",8,"2-3"), d("Cable Flye",3,"12",8,"1-2"), d("Dumbbell Supinated Curl",3,"10",8,"1-2"), d("Single-Arm Rope Tricep Extension",3,"12",8,"1-2")],
-      [d("Deadlift",3,"8",7,"3-4"), d("Dumbbell Walking Lunge",3,"10 (10 steps/leg)",8,"2-3"), d("Single-Leg Leg Extension",3,"15",8,"1-2"), d("Single-Leg Lying Leg Curl",3,"15",8,"1-2"), d("Machine Seated Hip Abduction",3,"15",9,"1-2"), d("Standing Calf Raise",3,"12",8,"1-2"), d("Plank",3,"20sec",8,"1-2")],
+      [d("Leg Press",3,"8",7,"3-4"), d("Dumbbell Walking Lunge",3,"10 (10 steps/leg)",8,"2-3"), d("Single-Leg Leg Extension",3,"15",8,"1-2"), d("Single-Leg Lying Leg Curl",3,"15",8,"1-2"), d("Machine Seated Hip Abduction",3,"15",9,"1-2"), d("Standing Calf Raise",3,"12",8,"1-2"), d("Plank",3,"20sec",8,"1-2")],
       [d("Dumbbell Incline Press",3,"8",8,"2-3"), d("Reverse Grip Lat Pulldown",3,"8",8,"2-3"), d("Assisted Dip",3,"10",7,"2-3"), d("Barbell Bent Over Row",3,"12",7,"2-3"), d("Dumbbell Lateral Raise",3,"15",8,"1-2"), d("Seated Face Pull",3,"15",8,"1-2"), d("Hammer Curl",3,"8",9,"1-2")]
     ]},
     { label:"Weeks 5-8 · Modified Strength Base", weeks:[5,6,7,8], days:[
-      [d("Deadlift",3,"5",8,"3-4"), d("Goblet Squat",3,"12",8,"2-3"), d("Dumbbell Single-Leg Hip Thrust",3,"10",9,"2-3"), d("Leg Press",3,"12",8,"1-2"), d("Lying Leg Curl",3,"15",9,"1-2"), d("Standing Calf Raise",3,"8",8,"1-2"), d("Bicycle Crunch",3,"12",8,"1-2")],
+      [d("Glute Ham Raise",3,"10-12",8,"1-2"), d("Goblet Squat",3,"12",8,"2-3"), d("Dumbbell Single-Leg Hip Thrust",3,"10",9,"2-3"), d("Leg Press",3,"12",8,"1-2"), d("Lying Leg Curl",3,"15",9,"1-2"), d("Standing Calf Raise",3,"8",8,"1-2"), d("Bicycle Crunch",3,"12",8,"1-2")],
       [d("Barbell Bench Press",3,"8",8,"3-4"), d("Single-Arm Pulldown",3,"8",8,"2-3"), d("Dumbbell Seated Shoulder Press",3,"12",7,"2-3"), d("Dumbbell Row",3,"12",8,"2-3"), d("Assisted Dip",3,"6",8,"1-2"), d("Seated Face Pull",3,"15",9,"1-2"), d("EZ Bar Curl",3,"12",9,"1-2")],
-      [d("Back Squat",3,"8",8,"3-4"), d("Barbell Hip Thrust",3,"8",8,"2-3"), d("Romanian Deadlift",3,"12",8,"2-3"), d("Seated Leg Curl",3,"8",9,"1-2"), d("Standing Calf Raise",3,"6",9,"1-2"), d("Hanging Leg Raise",3,"6",8,"1-2"), d("Machine Seated Hip Abduction",3,"20",9,"1-2")],
+      [d("Hack Squat",3,"8",8,"3-4"), d("Barbell Hip Thrust",3,"8",8,"2-3"), d("Romanian Deadlift",3,"12",8,"2-3"), d("Seated Leg Curl",3,"8",9,"1-2"), d("Standing Calf Raise",3,"6",9,"1-2"), d("Hanging Leg Raise",3,"6",8,"1-2"), d("Machine Seated Hip Abduction",3,"20",9,"1-2")],
       [d("Military Press",3,"6",8,"3-4"), d("Neutral-Grip Pulldown",3,"6",8,"3-4"), d("Dumbbell Incline Press",3,"8",8,"2-3"), d("Cable Seated Row",3,"8",9,"2-3"), d("Cable Lateral Raise",3,"12",8,"1-2"), d("Reverse Pec Deck",3,"12",8,"1-2"), d("Single-Arm Cable Curl",3,"15",9,"1-2")]
     ]}
   ]},
@@ -1016,16 +1022,16 @@ split: { id:"split", label:"Body Part Split", family:"nippard", finite:true, tot
   blocks:[
     { label:"Weeks 1-4 · Strength Base", weeks:[1,2,3,4], days:[
       [d("Barbell Bench Press",3,"6",7,"3-4"), d("Dumbbell Incline Press",3,"8",8,"2-3"), d("Cable Flye",3,"12",8,"1-2"), d("Assisted Dip",3,"10",7,"1-2"), d("Dumbbell Skull Crusher",3,"12",8,"1-2")],
-      [d("Back Squat",3,"6",7,"3-4"), d("Romanian Deadlift",3,"8",7,"2-3"), d("Barbell Hip Thrust",3,"12",8,"2-3"), d("Leg Extension",3,"12",8,"1-2"), d("Lying Leg Curl",3,"12",8,"1-2"), d("Standing Calf Raise",2,"8",7,"1-2"), d("Crunch",2,"12",7,"1-2")],
+      [d("Hack Squat",3,"6",7,"3-4"), d("Romanian Deadlift",3,"8",7,"2-3"), d("Barbell Hip Thrust",3,"12",8,"2-3"), d("Leg Extension",3,"12",8,"1-2"), d("Lying Leg Curl",3,"12",8,"1-2"), d("Standing Calf Raise",2,"8",7,"1-2"), d("Crunch",2,"12",7,"1-2")],
       [d("Reverse Grip Lat Pulldown",3,"8",8,"2-3"), d("Cable Seated Row",3,"10",8,"2-3"), d("Chest-Supported T-Bar Row",3,"12",8,"2-3"), d("Seated Face Pull",3,"15",8,"1-2"), d("Dumbbell Supinated Curl",3,"12",8,"1-2")],
-      [d("Deadlift",3,"5",7,"3-4"), d("Dumbbell Walking Lunge",3,"10 (10 steps/leg)",8,"2-3"), d("Single-Leg Leg Extension",2,"15",8,"1-2"), d("Single-Leg Lying Leg Curl",2,"15",8,"1-2"), d("Machine Seated Hip Abduction",3,"15",7,"1-2"), d("Standing Calf Raise",2,"12",8,"1-2"), d("Plank",3,"20sec",8,"1-2")],
+      [d("Leg Press",3,"5",7,"3-4"), d("Dumbbell Walking Lunge",3,"10 (10 steps/leg)",8,"2-3"), d("Single-Leg Leg Extension",2,"15",8,"1-2"), d("Single-Leg Lying Leg Curl",2,"15",8,"1-2"), d("Machine Seated Hip Abduction",3,"15",7,"1-2"), d("Standing Calf Raise",2,"12",8,"1-2"), d("Plank",3,"20sec",8,"1-2")],
       [d("Military Press",3,"6",7,"3-4"), d("Dumbbell Lateral Raise",3,"12",8,"1-2"), d("Cable Reverse Flye",3,"15",8,"1-2"), d("Single-Arm Rope Tricep Extension",2,"12",8,"1-2"), d("Single-Arm Cable Curl",2,"12",8,"1-2")]
     ]},
     { label:"Weeks 5-8 · Modified Strength Base", weeks:[5,6,7,8], days:[
       [d("Barbell Bench Press",3,"8",8,"3-4"), d("Machine Incline Chest Press",3,"12",8,"2-3"), d("Pec Deck",3,"12",8,"1-2"), d("Assisted Dip",3,"6",8,"1-2"), d("Cable Tricep Kickback",3,"15",8,"1-2")],
-      [d("Deadlift",3,"5",8,"3-4"), d("Goblet Squat",3,"12",8,"2-3"), d("Dumbbell Single-Leg Hip Thrust",3,"10",9,"2-3"), d("Leg Press",3,"12",8,"1-2"), d("Lying Leg Curl",3,"15",9,"1-2"), d("Standing Calf Raise",3,"8",8,"1-2"), d("Bicycle Crunch",3,"12",8,"1-2")],
+      [d("Glute Ham Raise",3,"10-12",8,"1-2"), d("Goblet Squat",3,"12",8,"2-3"), d("Dumbbell Single-Leg Hip Thrust",3,"10",9,"2-3"), d("Leg Press",3,"12",8,"1-2"), d("Lying Leg Curl",3,"15",9,"1-2"), d("Standing Calf Raise",3,"8",8,"1-2"), d("Bicycle Crunch",3,"12",8,"1-2")],
       [d("Lat Pulldown",3,"6",8,"2-3"), d("Dumbbell Row",3,"12",8,"2-3"), d("Barbell Bent Over Row",3,"12",8,"2-3"), d("Reverse Pec Deck",3,"15",8,"1-2"), d("EZ Bar Curl",3,"15",8,"1-2")],
-      [d("Back Squat",3,"8",8,"3-4"), d("Barbell Hip Thrust",3,"8",8,"2-3"), d("Romanian Deadlift",3,"12",8,"2-3"), d("Seated Leg Curl",3,"8",9,"1-2"), d("Standing Calf Raise",3,"6",9,"1-2"), d("Hanging Leg Raise",3,"6",8,"1-2"), d("Machine Seated Hip Abduction",3,"20",9,"1-2")],
+      [d("Hack Squat",3,"8",8,"3-4"), d("Barbell Hip Thrust",3,"8",8,"2-3"), d("Romanian Deadlift",3,"12",8,"2-3"), d("Seated Leg Curl",3,"8",9,"1-2"), d("Standing Calf Raise",3,"6",9,"1-2"), d("Hanging Leg Raise",3,"6",8,"1-2"), d("Machine Seated Hip Abduction",3,"20",9,"1-2")],
       [d("Dumbbell Seated Shoulder Press",3,"10",8,"3-4"), d("Cable Lateral Raise",3,"12",8,"1-2"), d("Dumbbell Bent Over Lateral Raise",3,"12",8,"1-2"), d("Dumbbell Floor Press",2,"15",8,"1-2"), d("Hammer Curl",2,"8",8,"1-2")]
     ]}
   ]},
@@ -1653,7 +1659,7 @@ function renderProgress(){
     return `<div class="mtile"><div class="mname">${m}</div><div class="mval ${cls}">${v} sets</div><div class="mbar"><i style="width:${pct}%"></i></div></div>`;
   }).join('');
 
-  const keyLifts = ["Back Squat","Deadlift","Barbell Bench Press","Military Press","Romanian Deadlift","Barbell Hip Thrust"];
+  const keyLifts = ["Hack Squat","Leg Press","Barbell Bench Press","Military Press","Romanian Deadlift","Barbell Hip Thrust"];
   let trendHtml = '';
   keyLifts.forEach(name=>{
     const points = [];
