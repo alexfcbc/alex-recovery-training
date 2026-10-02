@@ -18,8 +18,8 @@ h1,h2,h3{margin:0 0 6px;}
 header.top{position:sticky; top:0; z-index:20; background:rgba(15,17,21,.92); backdrop-filter:blur(8px); border-bottom:1px solid var(--border);}
 .topbar{max-width:640px; margin:0 auto; padding:12px 16px; display:flex; align-items:center; justify-content:space-between;}
 .topbar .brand{font-weight:700; font-size:16px;}
-.progpicker{display:flex; gap:6px;}
-.progpicker button{background:var(--card2); border:1px solid var(--border); color:var(--sub); font-size:11px; padding:6px 8px; border-radius:8px;}
+.progpicker{display:flex; gap:6px; max-width:62vw;}
+.progpicker button{background:var(--card2); border:1px solid var(--border); color:var(--text); font-size:11.5px; padding:7px 10px; border-radius:8px; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
 .progpicker button.active{background:var(--accent2); color:#fff; border-color:var(--accent2);}
 .caution-banner{background:linear-gradient(90deg,rgba(245,166,35,.15),rgba(245,166,35,.05)); border:1px solid rgba(245,166,35,.4); color:#ffcf7d; font-size:12.5px; padding:10px 12px; border-radius:10px; margin:0 0 14px; display:flex; gap:8px; align-items:flex-start;}
 .caution-banner button{margin-left:auto; background:none; border:none; color:#ffcf7d; font-size:16px; padding:0 2px;}
@@ -160,19 +160,22 @@ a{color:var(--accent);}
         <input type="url" id="setSheetsUrl" placeholder="https://script.google.com/macros/...">
       </div>
       <button class="primary" onclick="saveSettings()">Save</button>
+      <button class="secondary" style="width:100%; margin-top:8px;" onclick="restoreFromSheets(true)">Sync now</button>
+      <p class="small" id="lastSyncedLabel" style="margin-top:8px;"></p>
     </div>
 
     <div class="card">
       <h3>Active programme</h3>
-      <select class="progselect" id="setProgramSelect" onchange="switchProgram(this.value)"></select>
+      <p class="small" id="progCurrentLabel"></p>
+      <button class="primary" style="width:100%; margin-bottom:10px;" onclick="openProgramPicker(false)">Switch Programme</button>
       <div id="progOverview"></div>
     </div>
 
     <div class="card">
-      <div class="toggle-row">
+      <div class="toggle-row" id="deloadToggleRow">
         <div>
           <div>Deload weeks</div>
-          <div class="small">Adds a lighter week after each 4-week block (reduced RPE target, drop a set if it feels like a lot).</div>
+          <div class="small">Adds a lighter week after each 4-week block (reduced RPE target, drop a set if it feels like a lot). Only applies to Jeff Nippard programmes — RP Hypertrophy has its own built-in deload weeks, and JSA programmes don't use one.</div>
         </div>
         <div class="switch" id="deloadSwitch" onclick="toggleDeload()"><div class="knob"></div></div>
       </div>
@@ -273,14 +276,98 @@ const EX = {
 "Hammer Curl": {muscle:"biceps", cue:"Neutral grip, prevent your upper arm from moving.", video:{url:"https://www.youtube.com/watch?v=B4RznoFvTl4",title:"Hammer Curl (PureGym)"}, sub:null, caution:null},
 "EZ Bar Curl": {muscle:"biceps", cue:"Press your pinky into the bar harder than your pointer finger.", video:{url:"https://www.youtube.com/watch?v=d2r5TCqnR4Y",title:"EZ Bar Curl (ATHLEAN-X)"}, sub:null, caution:null},
 "Single-Arm Cable Curl": {muscle:"biceps", cue:"Face away from the cable you are using, keep your arm behind your torso.", video:{url:"https://www.youtube.com/watch?v=njLoCel5lUI",title:"Single-Arm Cable Curl"}, sub:null, caution:null},
+
+/* --- Added for RP Hypertrophy (Hernia-Safe) programme --- */
+"Chest-Supported Machine Press": {muscle:"chest", cue:"Chest flat against the pad, press straight out, keep your torso pinned — no need to brace your core at all.", video:{url:"https://www.youtube.com/watch?v=PE9hYsHxXs0",title:"Chest-Supported Machine Press"}, sub:"Low Incline DB Bench Press", caution:null},
+"Incline DB Flye": {muscle:"chest", cue:"Soft bend in the elbows throughout, focus on a deep stretch across the chest at the bottom.", video:{url:"https://www.youtube.com/watch?v=7V0V5xWvDVA",title:"Incline Dumbbell Flye"}, sub:"Cable Crossover", caution:null},
+"Incline Dumbbell Curl": {muscle:"biceps", cue:"Let your arms hang straight down from a slight incline bench for a full stretch, curl without swinging.", video:{url:"https://www.youtube.com/watch?v=soxrZlIl35U",title:"Incline Dumbbell Curl"}, sub:null, caution:null},
+"Bulgarian Split Squat": {muscle:"quads", cue:"Rear foot elevated on a bench, torso upright, lower straight down rather than forward.", video:{url:"https://www.youtube.com/watch?v=2C-uNgKwPLE",title:"Bulgarian Split Squat"}, sub:null, caution:null},
+"Seated Calf Raise": {muscle:"calves", cue:"Knees bent under the pad, press through the balls of your feet, full stretch at the bottom.", video:{url:"https://www.youtube.com/watch?v=JbyjNymZOt0",title:"Seated Calf Raise"}, sub:null, caution:null},
+"Chest-Supported Neutral Row": {muscle:"back", cue:"Chest pinned to the pad throughout, pull with your elbows, squeeze your shoulder blades together at the top.", video:{url:"https://www.youtube.com/watch?v=OZbhYSgpzEE",title:"Chest-Supported Row"}, sub:null, caution:null},
+"Cable Overhead Triceps Extension": {muscle:"triceps", cue:"Face away from the cable, elbows pointed forward and still, extend forward and up.", video:{url:"https://www.youtube.com/watch?v=YbX7Wd8jQ-Q",title:"Cable Overhead Triceps Extension"}, sub:"Single-Arm Rope Tricep Extension", caution:null},
+"Preacher Curl": {muscle:"biceps", cue:"Upper arms flat on the pad throughout, control the eccentric, don't let your elbows come off the pad.", video:{url:"https://www.youtube.com/watch?v=fIWP-FRFNU0",title:"Preacher Curl"}, sub:"EZ Bar Machine Curl", caution:null},
+"Single-Leg DB RDL": {muscle:"hamstrings", cue:"Rest your non-working knee on a bench behind you for support, hinge at the hip, keep your back flat.", video:{url:"https://www.youtube.com/watch?v=soaKn02v2Qw",title:"Bench-Supported Single-Leg RDL"}, sub:null, caution:null},
+"Calf Machine Rotation": {muscle:"calves", cue:"Low, light load — rotate through the ankle rather than the knee, slow and controlled.", video:{url:"https://www.youtube.com/watch?v=cdCjwNfJ0SE",title:"Tibialis Raise / Calf Machine Rotation"}, sub:null, caution:null},
+
+/* --- Added for JSA coached programmes --- */
+"Cable Standing Fly": {muscle:"chest", cue:"Step forward slightly, soft bend in the elbows, bring your hands together in front of your chest.", video:{url:"https://www.youtube.com/watch?v=Iwe6AmxVf7o",title:"Standing Cable Fly"}, sub:"Pec Deck", caution:null},
+"Lever Shoulder Press": {muscle:"shoulders", cue:"Seated, back flat against the pad, press straight up without arching your lower back.", video:{url:"https://www.youtube.com/watch?v=2yjwXTZQDDI",title:"Lever/Machine Shoulder Press"}, sub:"Dumbbell Seated Shoulder Press", caution:null},
+"DB Standing Lateral Raise": {muscle:"shoulders", cue:"Tilt the dumbbell so your pinky leads, raise to shoulder height, no swinging.", video:{url:"https://www.youtube.com/watch?v=3VcKaXpzqRo",title:"DB Lateral Raise"}, sub:null, caution:null},
+"Alternate Toe Tap Leg Lift": {muscle:"core", cue:"Lie on your back, knees bent, gently tap alternating toes to the floor — a slow, gentle core-rehab movement, coach-approved as part of easing back into core work.", video:{url:"https://www.youtube.com/watch?v=3M4VvYJ0Dgg",title:"Alternating Toe Taps"}, sub:null, caution:null},
+"Cable Wide-grip Lat Pulldown": {muscle:"back", cue:"Wide overhand grip, pull your elbows down and back, lead with your chest.", video:{url:"https://www.youtube.com/watch?v=CAwf7n6Luuc",title:"Wide-Grip Lat Pulldown"}, sub:"Reverse Grip Lat Pulldown", caution:null},
+"Cable Low Seated Row": {muscle:"back", cue:"V-bar grip, sit tall, pull to your lower ribs, squeeze your shoulder blades together.", video:{url:"https://www.youtube.com/watch?v=GZbfZ033f74",title:"Seated Cable Row"}, sub:"Cable Seated Row", caution:null},
+"Barbell Curl": {muscle:"biceps", cue:"Elbows pinned to your sides, curl without swinging your torso.", video:{url:"https://www.youtube.com/watch?v=kwG2ipFRgfo",title:"Barbell Curl"}, sub:null, caution:null},
+"Cable Curl": {muscle:"biceps", cue:"Keep your elbows still at your sides, squeeze at the top of the curl.", video:{url:"https://www.youtube.com/watch?v=NFzTWp2qpiE",title:"Cable Curl"}, sub:null, caution:null},
+"Single Dead Bug": {muscle:"core", cue:"Lie on your back, arms up, knees bent at 90°. Slowly lower one arm and the opposite leg while keeping your lower back flat on the floor — a gentle, controlled core-stability movement, coach-approved for easing back into core work after surgery.", video:{url:"https://www.youtube.com/watch?v=4XLEnwUr1d8",title:"Dead Bug"}, sub:null, caution:null},
+"Barbell Standing Calf Raise": {muscle:"calves", cue:"Bar across your upper back, press up onto your toes, stretch at the bottom, don't bounce.", video:{url:"https://www.youtube.com/watch?v=3UWTEuFfy1E",title:"Barbell Standing Calf Raise"}, sub:"Standing Calf Raise", caution:null},
+"Dumbbell Chest Fly": {muscle:"chest", cue:"Soft bend in the elbows, lower with control, focus on the stretch across your chest.", video:{url:"https://www.youtube.com/watch?v=eozdVDA78K0",title:"Dumbbell Chest Fly"}, sub:null, caution:null},
+"Dumbbell Split Squat": {muscle:"quads", cue:"Split stance, torso upright, lower straight down, drive through your front heel.", video:{url:"https://www.youtube.com/watch?v=2C-uNgKwPLE",title:"Dumbbell Split Squat"}, sub:null, caution:null},
+"Cable Kneeling Triceps Extension": {muscle:"triceps", cue:"Kneel facing away from the cable, elbows pinned by your ears, extend forward and down.", video:{url:"https://www.youtube.com/watch?v=YbX7Wd8jQ-Q",title:"Kneeling Cable Triceps Extension"}, sub:null, caution:null},
+"Bench Dip": {muscle:"triceps", cue:"Hands on a bench behind you, lower under control, don't let your shoulders roll forward excessively.", video:{url:"https://www.youtube.com/watch?v=0326dy_-CzM",title:"Bench Dip"}, sub:null, caution:null},
+"Lever Chest Press": {muscle:"chest", cue:"Seated, back flat against the pad, press straight out without flaring your elbows too wide.", video:{url:"https://www.youtube.com/watch?v=xUm0BiZCWlQ",title:"Lever/Machine Chest Press"}, sub:"Barbell Bench Press", caution:null},
+"Cable Pulldown": {muscle:"back", cue:"Pull your elbows down and slightly back, keep your torso tall.", video:{url:"https://www.youtube.com/watch?v=apzFTbsm7HU",title:"Cable Pulldown"}, sub:null, caution:null},
+"One Leg Extension": {muscle:"quads", cue:"Focus on squeezing the working quad through the full range.", video:{url:"https://www.youtube.com/watch?v=3VIpG6rtFAc",title:"Single-Leg Leg Extension"}, sub:null, caution:null},
+"Lever Seated Row": {muscle:"back", cue:"Chest against the pad if available, pull your elbows back, squeeze your shoulder blades together.", video:{url:"https://www.youtube.com/watch?v=GZbfZ033f74",title:"Lever/Machine Seated Row"}, sub:null, caution:null},
+"Hip Abduction": {muscle:"glutes", cue:"Keep your torso still, focus on squeezing your outer glutes to move the weight.", video:{url:"https://www.youtube.com/watch?v=eKfVJ0YM8lY",title:"Machine Hip Abduction"}, sub:null, caution:null},
+"Horizontal One Leg Press": {muscle:"quads", cue:"Medium foot placement, don't let your lower back round at the bottom.", video:{url:"https://www.youtube.com/watch?v=qCR9bN3G1t4",title:"Single-Leg Horizontal Leg Press"}, sub:null, caution:null},
+"Lever Pec Deck Fly": {muscle:"chest", cue:"Keep a slight bend in your elbows, bring your hands together in front of your chest.", video:{url:"https://www.youtube.com/watch?v=eGjt4lk6g34",title:"Pec Deck Fly"}, sub:null, caution:null},
+"DB One Arm Bent Over Row": {muscle:"back", cue:"Brace your free hand on a bench, pull your elbow up and back against your side.", video:{url:"https://www.youtube.com/watch?v=ZRSGpBUVcNw",title:"Single-Arm Dumbbell Row"}, sub:null, caution:null},
+"DB Floor Chest Press": {muscle:"chest", cue:"Lie on the floor, upper arms stop at floor level, press straight up.", video:{url:"https://www.youtube.com/watch?v=T0Y3OBF1bNI",title:"DB Floor Press"}, sub:null, caution:null},
+"Cable Pushdown": {muscle:"triceps", cue:"Elbows pinned to your sides, push down without leaning on the bar.", video:{url:"https://www.youtube.com/watch?v=2-LAMcpzODU",title:"Cable Triceps Pushdown"}, sub:null, caution:null},
+"Cable Close-grip Pulldown": {muscle:"back", cue:"Close neutral or V-bar grip, pull your elbows down close to your torso.", video:{url:"https://www.youtube.com/watch?v=lEqRYQCqgnw",title:"Close-Grip Lat Pulldown"}, sub:null, caution:null},
+"Dumbbell Step Up": {muscle:"quads", cue:"Drive through the heel of your stepping foot, stand fully tall at the top, control the descent.", video:{url:"https://www.youtube.com/watch?v=OE-oXlFqK5Y",title:"Dumbbell Step Up"}, sub:null, caution:null},
+"Lever Standing Calf Raise": {muscle:"calves", cue:"Press up onto your toes, pause and stretch at the bottom, don't bounce.", video:{url:"https://www.youtube.com/watch?v=7AVIgDN72c0",title:"Machine Standing Calf Raise"}, sub:null, caution:null},
+"Dumbbell Incline Row": {muscle:"back", cue:"Chest supported on an incline bench, pull your elbows back and up, squeeze at the top.", video:{url:"https://www.youtube.com/watch?v=FTYqA5zA3Yk",title:"Chest-Supported Incline DB Row"}, sub:null, caution:null},
+"Cable Biceps Curl": {muscle:"biceps", cue:"SZ/EZ bar attachment, elbows pinned to your sides, curl without swinging.", video:{url:"https://www.youtube.com/watch?v=NFzTWp2qpiE",title:"Cable Biceps Curl"}, sub:null, caution:null},
+"Lever Assisted Chin Up": {muscle:"back", cue:"Underhand grip, pull your chest to the bar, let the counterweight assist as needed.", video:{url:"https://www.youtube.com/watch?v=wjUmnZH528Y",title:"Assisted Chin Up"}, sub:null, caution:null},
+"DB Floor Skullcrusher": {muscle:"triceps", cue:"Lie on the floor, lower the dumbbells toward your ears, keep your upper arms still.", video:{url:"https://www.youtube.com/watch?v=ZUZOn9c1VVI",title:"Floor Skullcrusher"}, sub:null, caution:null},
+"Barbell Seated Overhead Press": {muscle:"shoulders", cue:"Seated with back support, press straight up, avoid arching your lower back to compensate.", video:{url:"https://www.youtube.com/watch?v=2yjwXTZQDDI",title:"Seated Barbell Overhead Press"}, sub:"Lever Shoulder Press", caution:"Seated barbell overhead press still loads the spine under bracing — go carefully and stop if you feel any pulling or strain."},
+"Dumbbell Hip Thrust": {muscle:"glutes", cue:"Dumbbell resting on your hips, drive through your heels, squeeze your glutes at the top.", video:{url:"https://www.youtube.com/watch?v=RjWiwq1wgFg",title:"Dumbbell Hip Thrust"}, sub:"Barbell Hip Thrust", caution:"Loaded hip extension with weight across the hips — worth checking comfort here specifically."},
+
+/* --- Physio-prescribed rehab exercises (woven into every programme, see PHYSIO_EXERCISES) --- */
+"Chest-Supported Single-Arm Dumbbell Row": {muscle:"back", cue:"Brace your chest against an incline bench, pull your elbow straight back and up close to your side, squeeze your shoulder blade at the top, control the lowering — physio-prescribed rehab row.", video:{url:"https://www.youtube.com/watch?v=FTYqA5zA3Yk",title:"Chest-Supported Single-Arm DB Row (technique reference)"}, sub:null, caution:null},
+"Saturday Night Fever": {muscle:"shoulders", cue:"Functionally this is a 90/90 external rotation: upper arm out to the side at 90°, elbow bent 90°, rotate your forearm upward against a cable or resistance band (like Travolta's disco-point pose — some gyms/physios nickname it \"Saturday Night Fever\", though that name isn't universal) — rotator-cuff/posterior-shoulder rehab work. Do both sides. Start around 5–10kg (or equivalent band resistance) and progress slowly as tolerated.", video:null, sub:null, caution:null},
+"Reverse Flies, chest-supported": {muscle:"shoulders", cue:"Lie chest-down on an incline bench, arms hanging straight down, sweep your arms out and back to shoulder height while squeezing your shoulder blades together, control the lowering. Start around 5kg per dumbbell and progress slowly as tolerated.", video:{url:"https://www.youtube.com/watch?v=QnXb1dh_RjQ",title:"Reverse Fly Technique (reference)"}, sub:null, caution:null},
 };
 
 /* ============ PROGRAM DATA ============ */
 // helper to shorten writing exercise rows: [name, sets, reps, rpe, rest]
 function d(name,sets,reps,rpe,rest){ return {name,sets,reps,rpe,rest}; }
 
+/* ---- RP Hypertrophy (Hernia-Safe) — generated from a weekly RIR/set scheme ----
+   Same 4 exercise days run all 12 weeks; only set count + RPE (derived from the
+   PDF's target RIR, RPE = 10-RIR) change week to week, with two built-in deload
+   weeks (6 and 12) already baked into the generated sets/RPE rather than using
+   the optional Nippard-style deload toggle. See claude/rp-hypertrophy-extraction.md
+   in the project for the source table this is generated from. */
+const RP_DAYS_BASE = [
+  [ ["Chest-Supported Machine Press",3,"8-12","2"], ["Chest-Supported T-Bar Row",3,"10-12","2"], ["Incline DB Flye",3,"12-15","1.5"], ["Neutral-Grip Pulldown",3,"10-12","1.5"], ["Cable Lateral Raise",4,"12-15","1"], ["Incline Dumbbell Curl",3,"10-14","1"] ],
+  [ ["Leg Extension",3,"12-15","1.5"], ["Leg Press",3,"10-12","2.5"], ["Seated Leg Curl",3,"10-12","2"], ["Bulgarian Split Squat",3,"10-12/leg","1.5"], ["Seated Calf Raise",4,"12-15","1"] ],
+  [ ["Dumbbell Seated Shoulder Press",3,"8-12","2"], ["Chest-Supported Neutral Row",3,"10-12","2"], ["Dumbbell Incline Press",3,"10-12","2"], ["Cable Reverse Flye",3,"12-15","1"], ["Cable Overhead Triceps Extension",3,"12-15","1"], ["Preacher Curl",3,"10-12","1"] ],
+  [ ["Lying Leg Curl",4,"8-12","2"], ["Single-Leg DB RDL",3,"10-12/leg","1.5"], ["Leg Press",3,"10-12","2"], ["Machine Seated Hip Abduction",3,"12-15","1"], ["Calf Machine Rotation",3,"15-20","1"] ]
+];
+const RP_WEEK_SCHEME = [
+  {rpe:7, setMode:'minus1'}, {rpe:8, setMode:'base'}, {rpe:8, setMode:'base'}, {rpe:9, setMode:'base'}, {rpe:9, setMode:'base'},
+  {rpe:6, setMode:'deload', deload:true, label:"Week 6 — Deload (cut load ~30%)"},
+  {rpe:7, setMode:'base'}, {rpe:8, setMode:'base'}, {rpe:8, setMode:'base'}, {rpe:9, setMode:'base'}, {rpe:10, setMode:'base'},
+  {rpe:6, setMode:'deload', deload:true, label:"Week 12 — Deload (cut load ~30%)"}
+];
+function buildRPBlocks(){
+  return RP_WEEK_SCHEME.map((wk,i)=>{
+    const weekNum = i+1;
+    const days = RP_DAYS_BASE.map(day=> day.map(([name,baseSets,reps,rest])=>{
+      let sets = baseSets;
+      if(wk.setMode==='minus1') sets = Math.max(2, baseSets-1);
+      else if(wk.setMode==='deload') sets = 2;
+      return d(name, sets, reps, wk.rpe, rest);
+    }));
+    const label = wk.label || (weekNum<=6 ? `Block 1 · Week ${weekNum}` : `Block 2 · Week ${weekNum} (Overload Phase)`);
+    return {label, weeks:[weekNum], builtInDeload:!!wk.deload, days};
+  });
+}
+
 const PROGRAMS = {
-fullbody: { id:"fullbody", label:"Full Body", daysPerWeek:3,
+fullbody: { id:"fullbody", label:"Full Body", family:"nippard", finite:true, totalWeeks:8, daysPerWeek:3,
   dayLabels:["Full Body #1","Full Body #2","Full Body #3"],
   blocks:[
     { label:"Weeks 1-4 · Strength Base", weeks:[1,2,3,4], days:[
@@ -294,7 +381,7 @@ fullbody: { id:"fullbody", label:"Full Body", daysPerWeek:3,
       [d("Back Squat",3,"5",8,"2-3"), d("Barbell Bench Press",3,"10",8,"2-3"), d("Neutral-Grip Pulldown",3,"15",8,"2-3"), d("Lying Leg Curl",3,"12",8,"2-3"), d("Seated Face Pull",3,"15",8,"1-2"), d("Single-Arm Rope Tricep Extension",3,"12",8,"1-2"), d("Standing Calf Raise",3,"10",8,"1-2")]
     ]}
   ]},
-upperlower: { id:"upperlower", label:"Upper/Lower", daysPerWeek:4,
+upperlower: { id:"upperlower", label:"Upper/Lower", family:"nippard", finite:true, totalWeeks:8, daysPerWeek:4,
   dayLabels:["Lower #1","Upper #1","Lower #2","Upper #2"],
   blocks:[
     { label:"Weeks 1-4 · Strength Base", weeks:[1,2,3,4], days:[
@@ -310,7 +397,7 @@ upperlower: { id:"upperlower", label:"Upper/Lower", daysPerWeek:4,
       [d("Military Press",3,"6",8,"3-4"), d("Neutral-Grip Pulldown",3,"6",8,"3-4"), d("Dumbbell Incline Press",3,"8",8,"2-3"), d("Cable Seated Row",3,"8",9,"2-3"), d("Cable Lateral Raise",3,"12",8,"1-2"), d("Reverse Pec Deck",3,"12",8,"1-2"), d("Single-Arm Cable Curl",3,"15",9,"1-2")]
     ]}
   ]},
-split: { id:"split", label:"Body Part Split", daysPerWeek:5,
+split: { id:"split", label:"Body Part Split", family:"nippard", finite:true, totalWeeks:8, daysPerWeek:5,
   dayLabels:["Chest & Triceps","Legs & Abs","Back & Biceps","Legs & Abs","Shoulders & Arms"],
   blocks:[
     { label:"Weeks 1-4 · Strength Base", weeks:[1,2,3,4], days:[
@@ -327,20 +414,160 @@ split: { id:"split", label:"Body Part Split", daysPerWeek:5,
       [d("Back Squat",3,"8",8,"3-4"), d("Barbell Hip Thrust",3,"8",8,"2-3"), d("Romanian Deadlift",3,"12",8,"2-3"), d("Seated Leg Curl",3,"8",9,"1-2"), d("Standing Calf Raise",3,"6",9,"1-2"), d("Hanging Leg Raise",3,"6",8,"1-2"), d("Machine Seated Hip Abduction",3,"20",9,"1-2")],
       [d("Dumbbell Seated Shoulder Press",3,"10",8,"3-4"), d("Cable Lateral Raise",3,"12",8,"1-2"), d("Dumbbell Bent Over Lateral Raise",3,"12",8,"1-2"), d("Dumbbell Floor Press",2,"15",8,"1-2"), d("Hammer Curl",2,"8",8,"1-2")]
     ]}
-  ]}
+  ]},
+rp: { id:"rp", label:"RP Hypertrophy (Hernia-Safe)", family:"rp", finite:true, totalWeeks:12, bakedRpe:true,
+  deloadTagText:"Deload week — cut load ~30%, aim RPE 6 (4 RIR). Full recovery before the next block.",
+  daysPerWeek:4, dayLabels:["Upper A","Lower A","Upper B","Lower B"],
+  blocks: buildRPBlocks() },
+jsa3: { id:"jsa3", label:"JSA: Lose Fat 2 (Maja)", family:"jsa", finite:false, totalWeeks:null, daysPerWeek:3,
+  dayLabels:["Push & Quad Focus","Pull, Hamstrings & Biceps","Full Body / Hypertrophy"],
+  blocks:[ { label:"Ongoing weekly routine", weeks:[1], builtInDeload:false, days:[
+    [d("Barbell Bench Press",3,"10",8,"1.5"), d("Cable Standing Fly",3,"12",8,"1"), d("Leg Press",3,"10",8,"1"), d("Leg Extension",3,"12",8,"0.75"), d("Lever Shoulder Press",3,"10",8,"1.5"), d("DB Standing Lateral Raise",3,"12",8,"1"), d("Alternate Toe Tap Leg Lift",3,"14",6,"0.75")],
+    [d("Cable Wide-grip Lat Pulldown",3,"12",8,"1"), d("Cable Low Seated Row",3,"10",8,"1.5"), d("Lying Leg Curl",3,"12",8,"1"), d("Barbell Bent Over Row",3,"10",8,"1"), d("Barbell Curl",3,"8-10",8,"1.5"), d("Cable Curl",3,"8-12",8,"1"), d("Single Dead Bug",3,"10",6,"0.75"), d("Barbell Standing Calf Raise",3,"10",8,"1")],
+    [d("Goblet Squat",3,"10",8,"1"), d("Dumbbell Incline Press",3,"10",8,"1.5"), d("Dumbbell Chest Fly",3,"12",8,"0.75"), d("Dumbbell Split Squat",3,"8",8,"1"), d("Cable Kneeling Triceps Extension",3,"12",8,"0.75"), d("Bench Dip",3,"12",8,"0.75"), d("Plank",3,"30sec hold",7,"0.75")]
+  ]} ]},
+jsa4: { id:"jsa4", label:"JSA: Lose Fat (Steve)", family:"jsa", finite:false, totalWeeks:null, daysPerWeek:4,
+  dayLabels:["Day 1","Day 2","Day 3","Day 4"],
+  blocks:[ { label:"Ongoing weekly routine", weeks:[1], builtInDeload:false, days:[
+    [d("Leg Press",3,"10-12",8,"1"), d("Lever Chest Press",3,"12",8,"1"), d("Cable Pulldown",3,"12",8,"1"), d("One Leg Extension",3,"10",8,"1"), d("Lever Shoulder Press",3,"10-12",8,"1"), d("Lever Seated Row",3,"12",8,"1"), d("Hip Abduction",6,"12",8,"1")],
+    [d("Horizontal One Leg Press",3,"10",8,"1"), d("Lying Leg Curl",3,"10",8,"1"), d("Lever Pec Deck Fly",3,"10",8,"1"), d("DB One Arm Bent Over Row",3,"10",8,"1"), d("DB Floor Chest Press",3,"10",8,"1"), d("Cable Pushdown",3,"12",8,"1")],
+    [d("Cable Close-grip Pulldown",3,"12",8,"1"), d("Dumbbell Step Up",3,"12",8,"1"), d("Dumbbell Seated Shoulder Press",3,"10-12",8,"1"), d("Lever Standing Calf Raise",3,"12",8,"1"), d("Dumbbell Incline Row",3,"10-12",8,"1"), d("Cable Biceps Curl",3,"8-12",8,"1")],
+    [d("Lever Assisted Chin Up",3,"10",8,"1"), d("DB Floor Skullcrusher",3,"10",8,"0.75"), d("Dumbbell Lateral Raise",3,"12",8,"1"), d("Barbell Seated Overhead Press",3,"8-10",8,"1"), d("Seated Leg Curl",3,"10-12",8,"1"), d("Dumbbell Hip Thrust",3,"12",8,"1")]
+  ]} ]}
 };
+
+/* ============ PHYSIO-PRESCRIBED REHAB EXERCISES ============
+   3 physio exercises rotate evenly through every training session, one per
+   session, regardless of programme (see state.physioRotationIndex, a single
+   global counter advanced once per save in saveSession()). If a session's day
+   already contains something genuinely similar to the exercise that's "due"
+   this rotation turn, it's skipped for that session (not inserted again). */
+const PHYSIO_EXERCISES = [
+  { name:"Chest-Supported Single-Arm Dumbbell Row", sets:3, reps:"10", rpe:null, rest:"1",
+    similarTo:["Dumbbell Row","Chest-Supported T-Bar Row","Chest-Supported Neutral Row","DB One Arm Bent Over Row","Dumbbell Incline Row","Cable Seated Row","Cable Low Seated Row","Lever Seated Row","Barbell Bent Over Row"] },
+  { name:"Saturday Night Fever", sets:3, reps:"10", rpe:null, rest:"1",
+    similarTo:[] },
+  { name:"Reverse Flies, chest-supported", sets:3, reps:"12", rpe:null, rest:"1",
+    similarTo:["Cable Reverse Flye","Reverse Pec Deck","Dumbbell Bent Over Lateral Raise","Seated Face Pull"] }
+];
+// Returns a NEW exercise array for this session: the day's static exercises,
+// plus the physio exercise due at this rotation position (PHYSIO_EXERCISES[physioIndex % 3]) —
+// unless the day already contains it or something similar, in which case the
+// original array is returned unchanged (as a copy, so callers never mutate PROGRAMS data).
+function getSessionExercises(baseDayExercises, physioIndex){
+  const due = PHYSIO_EXERCISES[physioIndex % PHYSIO_EXERCISES.length];
+  const alreadyCovered = baseDayExercises.some(ex=> ex.name===due.name || (due.similarTo && due.similarTo.includes(ex.name)));
+  if(alreadyCovered) return baseDayExercises.slice();
+  return baseDayExercises.concat([ d(due.name, due.sets, due.reps, due.rpe, due.rest) ]);
+}
 
 /* ============ STATE ============ */
 const LS_STATE = "actraining_state_v2";
 const LS_HIST = "actraining_history_v2";
 const DEFAULT_STATE = {
-  name:"", sheetsUrl:"", activeProgram:"fullbody", cautionOn:true, cautionBannerDismissed:false,
+  name:"", sheetsUrl:"", activeProgram:"fullbody", cautionOn:true, cautionBannerDismissed:false, jsaHistorySeeded:false, physioRotationIndex:0, stateSyncedAt:0,
   programs:{
     fullbody:{seqIndex:0, deload:false, draft:{}},
     upperlower:{seqIndex:0, deload:false, draft:{}},
-    split:{seqIndex:0, deload:false, draft:{}}
+    split:{seqIndex:0, deload:false, draft:{}},
+    rp:{seqIndex:0, deload:false, draft:{}},
+    jsa3:{seqIndex:0, deload:false, draft:{}},
+    jsa4:{seqIndex:0, deload:false, draft:{}}
   }
 };
+
+/* ============ PROGRAMME FAMILIES (for the picker modal) ============ */
+const FAMILIES = [
+  { key:"nippard", label:"Jeff Nippard — Fundamentals", programs:["fullbody","upperlower","split"] },
+  { key:"nippard_intermediate", label:"Jeff Nippard — Intermediate/Advanced", comingSoon:true,
+    note:"High Frequency Full Body & Push/Pull/Legs — source material received, full build coming in a future update." },
+  { key:"rp", label:"RP Hypertrophy (Hernia-Safe)", programs:["rp"] },
+  { key:"jsa", label:"JSA Coached Programs", programs:["jsa3","jsa4"] }
+];
+
+/* ============ JSA HISTORICAL SEED DATA ============ */
+const SEED_HISTORY_JSA = [
+  {program:"jsa3", programLabel:"JSA: Lose Fat 2 (Maja)", week:1, deload:false, dayIndex:0, dayLabel:"Push & Quad Focus", date:"2026-06-19", savedAt:new Date("2026-06-19").getTime(), exercises:[
+    {name:"Barbell Bench Press", sets:[{weight:"80",reps:"10",done:true},{weight:"80",reps:"10",done:true},{weight:"80",reps:"10",done:true}], notes:"Imported from JSA export."},
+    {name:"Cable Standing Fly", sets:[{weight:"25",reps:"12",done:true},{weight:"25",reps:"12",done:true},{weight:"25",reps:"12",done:true}], notes:""},
+    {name:"Leg Press", sets:[{weight:"200",reps:"10",done:true},{weight:"200",reps:"10",done:true},{weight:"200",reps:"10",done:true}], notes:""},
+    {name:"Leg Extension", sets:[{weight:"100",reps:"12",done:true},{weight:"100",reps:"12",done:true},{weight:"100",reps:"12",done:true}], notes:""},
+    {name:"Lever Shoulder Press", sets:[{weight:"50",reps:"10",done:true},{weight:"50",reps:"10",done:true},{weight:"50",reps:"10",done:true}], notes:""},
+    {name:"DB Standing Lateral Raise", sets:[{weight:"12",reps:"12",done:true},{weight:"12",reps:"12",done:true},{weight:"12",reps:"12",done:true}], notes:""},
+    {name:"Alternate Toe Tap Leg Lift", sets:[{weight:"",reps:"14",done:true},{weight:"",reps:"14",done:true},{weight:"",reps:"14",done:true}], notes:"Bodyweight, gentle core."}
+  ]},
+  {program:"jsa4", programLabel:"JSA: Lose Fat (Steve)", week:1, deload:false, dayIndex:0, dayLabel:"Day 1", date:"2026-04-13", savedAt:new Date("2026-04-13").getTime(), exercises:[
+    {name:"Leg Press", sets:[{weight:"100",reps:"11",done:true},{weight:"100",reps:"11",done:true},{weight:"100",reps:"11",done:true}], notes:"Imported from JSA export."},
+    {name:"Lever Chest Press", sets:[{weight:"75",reps:"12",done:true},{weight:"75",reps:"12",done:true},{weight:"75",reps:"12",done:true}], notes:""},
+    {name:"Cable Pulldown", sets:[{weight:"65",reps:"12",done:true},{weight:"65",reps:"12",done:true},{weight:"65",reps:"12",done:true}], notes:""},
+    {name:"One Leg Extension", sets:[{weight:"55",reps:"10",done:true},{weight:"55",reps:"10",done:true},{weight:"55",reps:"10",done:true}], notes:""},
+    {name:"Lever Shoulder Press", sets:[{weight:"50",reps:"11",done:true},{weight:"50",reps:"11",done:true},{weight:"50",reps:"11",done:true}], notes:""},
+    {name:"Lever Seated Row", sets:[{weight:"75",reps:"12",done:true},{weight:"75",reps:"12",done:true},{weight:"75",reps:"12",done:true}], notes:""},
+    {name:"Hip Abduction", sets:[{weight:"36",reps:"12",done:true},{weight:"36",reps:"12",done:true},{weight:"36",reps:"12",done:true},{weight:"36",reps:"12",done:true},{weight:"36",reps:"12",done:true},{weight:"36",reps:"12",done:true}], notes:"Cardio finisher: 20min stationary bike (not logged)."}
+  ]},
+  {program:"jsa4", programLabel:"JSA: Lose Fat (Steve)", week:1, deload:false, dayIndex:0, dayLabel:"Day 1", date:"2026-04-22", savedAt:new Date("2026-04-22").getTime(), exercises:[
+    {name:"Leg Press", sets:[{weight:"150",reps:"11",done:true},{weight:"150",reps:"11",done:true},{weight:"150",reps:"11",done:true}], notes:"Imported from JSA export."},
+    {name:"Lever Chest Press", sets:[{weight:"80",reps:"12",done:true},{weight:"80",reps:"12",done:true},{weight:"80",reps:"12",done:true}], notes:"Bench alt."},
+    {name:"Cable Pulldown", sets:[{weight:"70",reps:"12",done:true},{weight:"70",reps:"12",done:true},{weight:"70",reps:"12",done:true}], notes:""},
+    {name:"One Leg Extension", sets:[{weight:"60",reps:"10",done:true},{weight:"60",reps:"10",done:true},{weight:"60",reps:"10",done:true}], notes:""},
+    {name:"Lever Shoulder Press", sets:[{weight:"50",reps:"11",done:true},{weight:"50",reps:"11",done:true},{weight:"50",reps:"11",done:true}], notes:""},
+    {name:"Lever Seated Row", sets:[{weight:"75",reps:"12",done:true},{weight:"75",reps:"12",done:true},{weight:"75",reps:"12",done:true}], notes:""},
+    {name:"Hip Abduction", sets:[{weight:"36",reps:"12",done:true},{weight:"36",reps:"12",done:true},{weight:"36",reps:"12",done:true},{weight:"36",reps:"12",done:true},{weight:"36",reps:"12",done:true},{weight:"36",reps:"12",done:true}], notes:"Cardio finisher: 20min stationary bike (not logged)."}
+  ]},
+  {program:"jsa4", programLabel:"JSA: Lose Fat (Steve)", week:1, deload:false, dayIndex:1, dayLabel:"Day 2", date:"2026-04-14", savedAt:new Date("2026-04-14").getTime(), exercises:[
+    {name:"Horizontal One Leg Press", sets:[{weight:"77",reps:"10",done:true},{weight:"77",reps:"10",done:true},{weight:"77",reps:"10",done:true}], notes:"Imported from JSA export."},
+    {name:"Lying Leg Curl", sets:[{weight:"40",reps:"10",done:true},{weight:"40",reps:"10",done:true},{weight:"40",reps:"10",done:true}], notes:""},
+    {name:"Lever Pec Deck Fly", sets:[{weight:"80",reps:"10",done:true},{weight:"80",reps:"10",done:true},{weight:"80",reps:"10",done:true}], notes:""},
+    {name:"DB One Arm Bent Over Row", sets:[{weight:"40",reps:"10",done:true},{weight:"40",reps:"10",done:true},{weight:"40",reps:"10",done:true}], notes:""},
+    {name:"DB Floor Chest Press", sets:[{weight:"70",reps:"10",done:true},{weight:"70",reps:"10",done:true},{weight:"70",reps:"10",done:true}], notes:""},
+    {name:"Cable Pushdown", sets:[{weight:"60",reps:"12",done:true},{weight:"60",reps:"12",done:true},{weight:"60",reps:"12",done:true}], notes:"Cardio finisher: 20min incline treadmill (not logged)."}
+  ]},
+  {program:"jsa4", programLabel:"JSA: Lose Fat (Steve)", week:1, deload:false, dayIndex:1, dayLabel:"Day 2", date:"2026-04-24", savedAt:new Date("2026-04-24").getTime(), exercises:[
+    {name:"Horizontal One Leg Press", sets:[{weight:"77",reps:"10",done:true},{weight:"77",reps:"10",done:true},{weight:"77",reps:"10",done:true}], notes:"Imported from JSA export."},
+    {name:"Lying Leg Curl", sets:[{weight:"50",reps:"10",done:true},{weight:"50",reps:"10",done:true},{weight:"50",reps:"10",done:true}], notes:""},
+    {name:"Lever Pec Deck Fly", sets:[{weight:"80",reps:"10",done:true},{weight:"80",reps:"10",done:true},{weight:"80",reps:"10",done:true}], notes:""},
+    {name:"DB One Arm Bent Over Row", sets:[{weight:"40",reps:"10",done:true},{weight:"40",reps:"10",done:true},{weight:"40",reps:"10",done:true}], notes:""},
+    {name:"DB Floor Chest Press", sets:[{weight:"70",reps:"10",done:true},{weight:"70",reps:"10",done:true},{weight:"70",reps:"10",done:true}], notes:""},
+    {name:"Cable Pushdown", sets:[{weight:"90",reps:"12",done:true},{weight:"90",reps:"12",done:true},{weight:"90",reps:"12",done:true}], notes:"Cardio finisher: 20min incline treadmill (not logged)."}
+  ]},
+  {program:"jsa4", programLabel:"JSA: Lose Fat (Steve)", week:1, deload:false, dayIndex:2, dayLabel:"Day 3", date:"2026-04-17", savedAt:new Date("2026-04-17T00:00:00").getTime(), exercises:[
+    {name:"Cable Close-grip Pulldown", sets:[{weight:"60",reps:"12",done:true},{weight:"60",reps:"12",done:true},{weight:"60",reps:"12",done:true}], notes:"Imported from JSA export."},
+    {name:"Dumbbell Step Up", sets:[{weight:"45",reps:"12",done:true},{weight:"45",reps:"12",done:true},{weight:"45",reps:"12",done:true}], notes:""},
+    {name:"Dumbbell Seated Shoulder Press", sets:[{weight:"20",reps:"11",done:true},{weight:"20",reps:"11",done:true},{weight:"20",reps:"11",done:true}], notes:""},
+    {name:"Lever Standing Calf Raise", sets:[{weight:"35",reps:"12",done:true},{weight:"35",reps:"12",done:true},{weight:"35",reps:"12",done:true}], notes:""},
+    {name:"Dumbbell Incline Row", sets:[{weight:"20",reps:"11",done:true},{weight:"20",reps:"11",done:true},{weight:"20",reps:"11",done:true}], notes:""},
+    {name:"Cable Biceps Curl", sets:[{weight:"22.5",reps:"10",done:true},{weight:"22.5",reps:"10",done:true},{weight:"22.5",reps:"10",done:true}], notes:"Cardio finisher: 1000-1200m row (not logged)."}
+  ]},
+  {program:"jsa4", programLabel:"JSA: Lose Fat (Steve)", week:1, deload:false, dayIndex:2, dayLabel:"Day 3", date:"2026-04-24", savedAt:new Date("2026-04-24T00:00:00").getTime(), exercises:[
+    {name:"Cable Close-grip Pulldown", sets:[{weight:"70",reps:"12",done:true},{weight:"70",reps:"12",done:true},{weight:"70",reps:"12",done:true}], notes:"Imported from JSA export."},
+    {name:"Dumbbell Step Up", sets:[{weight:"52",reps:"12",done:true},{weight:"52",reps:"12",done:true},{weight:"52",reps:"12",done:true}], notes:""},
+    {name:"Dumbbell Seated Shoulder Press", sets:[{weight:"24",reps:"11",done:true},{weight:"24",reps:"11",done:true},{weight:"24",reps:"11",done:true}], notes:""},
+    {name:"Lever Standing Calf Raise", sets:[{weight:"40",reps:"12",done:true},{weight:"40",reps:"12",done:true},{weight:"40",reps:"12",done:true}], notes:""},
+    {name:"Dumbbell Incline Row", sets:[{weight:"20",reps:"11",done:true},{weight:"20",reps:"11",done:true},{weight:"20",reps:"11",done:true}], notes:""},
+    {name:"Cable Biceps Curl", sets:[{weight:"50",reps:"8",done:true},{weight:"50",reps:"8",done:true},{weight:"50",reps:"8",done:true}], notes:"Cardio finisher: 1000-1200m row (not logged)."}
+  ]},
+  {program:"jsa4", programLabel:"JSA: Lose Fat (Steve)", week:1, deload:false, dayIndex:3, dayLabel:"Day 4", date:"2026-04-17", savedAt:new Date("2026-04-17T01:00:00").getTime(), exercises:[
+    {name:"Lever Assisted Chin Up", sets:[{weight:"35",reps:"10",done:true},{weight:"35",reps:"10",done:true},{weight:"35",reps:"10",done:true}], notes:"Imported from JSA export. Weight shown is assistance level, not added load."},
+    {name:"DB Floor Skullcrusher", sets:[{weight:"35",reps:"10",done:true},{weight:"35",reps:"10",done:true},{weight:"35",reps:"10",done:true}], notes:""},
+    {name:"Dumbbell Lateral Raise", sets:[{weight:"7",reps:"12",done:true},{weight:"7",reps:"12",done:true},{weight:"7",reps:"12",done:true}], notes:""},
+    {name:"Barbell Seated Overhead Press", sets:[{weight:"30",reps:"9",done:true},{weight:"30",reps:"9",done:true},{weight:"30",reps:"9",done:true}], notes:""},
+    {name:"Seated Leg Curl", sets:[{weight:"45",reps:"11",done:true},{weight:"45",reps:"11",done:true},{weight:"45",reps:"11",done:true}], notes:""},
+    {name:"Dumbbell Hip Thrust", sets:[{weight:"32",reps:"12",done:true},{weight:"32",reps:"12",done:true},{weight:"32",reps:"12",done:true}], notes:"Cardio finisher: Stairmaster (not logged)."}
+  ]}
+];
+function seedJsaHistoryIfNeeded(){
+  if(state.jsaHistorySeeded) return;
+  const seeds = SEED_HISTORY_JSA.map(r=> Object.assign({}, r, {user: state.name||''}));
+  history = history.concat(seeds);
+  history.sort((a,b)=> (b.savedAt||0)-(a.savedAt||0));
+  state.jsaHistorySeeded = true;
+  saveHistory();
+  // Local bootstrap only — persist without calling saveState(), so a brand-new install with a
+  // sheetsUrl/name already configured (e.g. restored localStorage, or "new phone" re-entry) can't
+  // push this device's still-default position to Sheets ahead of the initial restoreFromSheets()
+  // pull below and clobber a genuinely newer remote position.
+  localStorage.setItem(LS_STATE, JSON.stringify(state));
+}
 let state = loadState();
 let history = loadHistory();
 
@@ -350,7 +577,13 @@ function loadState(){
     return Object.assign(JSON.parse(JSON.stringify(DEFAULT_STATE)), parsed, {programs:Object.assign(JSON.parse(JSON.stringify(DEFAULT_STATE)).programs, parsed.programs||{})});
   }catch(e){ return JSON.parse(JSON.stringify(DEFAULT_STATE)); }
 }
-function saveState(){ localStorage.setItem(LS_STATE, JSON.stringify(state)); }
+function saveState(){
+  if(state.sheetsUrl && state.name){
+    state.stateSyncedAt = Date.now();
+  }
+  localStorage.setItem(LS_STATE, JSON.stringify(state));
+  pushStateToSheets(state.stateSyncedAt);
+}
 function loadHistory(){ try{ return JSON.parse(localStorage.getItem(LS_HIST))||[]; }catch(e){ return []; } }
 function saveHistory(){ localStorage.setItem(LS_HIST, JSON.stringify(history)); }
 
@@ -360,8 +593,8 @@ function buildSequence(progId){
   const deloadOn = state.programs[progId].deload;
   const seq = [];
   p.blocks.forEach((block, bi)=>{
-    block.weeks.forEach(w=> seq.push({week:w, blockIndex:bi, deload:false}));
-    if(deloadOn) seq.push({week:"Deload", blockIndex:bi, deload:true});
+    block.weeks.forEach(w=> seq.push({week:w, blockIndex:bi, deload:!!block.builtInDeload}));
+    if(deloadOn && !block.builtInDeload) seq.push({week:"Deload", blockIndex:bi, deload:true});
   });
   return seq;
 }
@@ -380,15 +613,43 @@ function getPos(progId){
 /* ============ RENDER: TRAIN TAB ============ */
 function renderProgPicker(){
   const el = document.getElementById('progPicker');
-  el.innerHTML = Object.values(PROGRAMS).map(p=>
-    `<button class="${p.id===state.activeProgram?'active':''}" onclick="switchProgram('${p.id}')">${p.label}</button>`
-  ).join('');
+  const p = PROGRAMS[state.activeProgram];
+  el.innerHTML = `<button onclick="openProgramPicker(false)">${escapeHtml(p.label)} <span style="opacity:.6">▾</span></button>`;
 }
 
 function switchProgram(id){
   state.activeProgram = id; saveState();
-  document.getElementById('setProgramSelect').value = id;
+  closeModal();
   renderAll();
+  if(document.getElementById('page-settings').classList.contains('active')) renderSettings();
+}
+
+/* ============ PROGRAMME PICKER / COMPLETION MODAL ============ */
+function openProgramPicker(isCompletion, completedLabel){
+  let html = `<button class="close" onclick="closeModal()">✕</button>`;
+  if(isCompletion){
+    html += `<h3>🎉 Programme complete!</h3><p class="small">You've finished ${escapeHtml(completedLabel)}. Repeat it, pick a different split, or switch to a different programme entirely.</p>`;
+  } else {
+    html += `<h3>Switch Programme</h3><p class="small">Pick any programme below — your progress on each is kept separately, so you can always come back.</p>`;
+  }
+  FAMILIES.forEach(fam=>{
+    html += `<h4 style="margin:16px 0 6px;">${escapeHtml(fam.label)}</h4>`;
+    if(fam.comingSoon){
+      html += `<div class="subbox" style="opacity:.6;">🔒 Coming soon<br><span class="small">${escapeHtml(fam.note||'')}</span></div>`;
+      return;
+    }
+    fam.programs.forEach(pid=>{
+      const p = PROGRAMS[pid];
+      const isActive = pid===state.activeProgram;
+      const lenLabel = p.finite ? `${p.totalWeeks} weeks · ${p.daysPerWeek}x/week` : `Ongoing · ${p.daysPerWeek}x/week`;
+      html += `<div class="subbox" style="cursor:pointer; ${isActive?'border-color:var(--accent2);':''}" onclick="switchProgram('${pid}')">
+        <b>${escapeHtml(p.label)}</b>${isActive?' <span class="small">(current)</span>':''}<br>
+        <span class="small">${lenLabel}</span>
+      </div>`;
+    });
+  });
+  document.getElementById('modalBody').innerHTML = html;
+  document.getElementById('modalOverlay').classList.add('show');
 }
 
 function renderTrain(){
@@ -396,7 +657,7 @@ function renderTrain(){
   const prog = PROGRAMS[progId];
   const {entry, dayIdx} = getPos(progId);
   const block = prog.blocks[entry.blockIndex];
-  const dayExercises = block.days[dayIdx];
+  const dayExercises = getSessionExercises(block.days[dayIdx], state.physioRotationIndex);
   const dayLabel = prog.dayLabels[dayIdx];
   const draftKey = `${entry.week}_${dayIdx}`;
   const st = state.programs[progId];
@@ -406,12 +667,13 @@ function renderTrain(){
   let anyCaution = dayExercises.some(ex=> EX[ex.name] && EX[ex.name].caution);
   document.getElementById('cautionBanner').style.display = (anyCaution && state.cautionOn && !state.cautionBannerDismissed) ? 'flex' : 'none';
 
+  const weekLabel = prog.finite ? `Week ${entry.week} of ${prog.totalWeeks}` : `Ongoing weekly routine`;
   let html = `<div class="card">
     <div class="sess-head">
-      <div class="pos">${prog.label} — Week ${entry.week} of 8${entry.deload?'':''} · ${dayLabel}</div>
+      <div class="pos">${prog.label} — ${weekLabel} · ${dayLabel}</div>
       <div class="lbl">${block.label}</div>
     </div>
-    ${entry.deload?`<span class="deload-tag">Deload week — aim ~1-2 RPE lower / consider dropping the last set</span>`:''}
+    ${entry.deload?`<span class="deload-tag">${escapeHtml(prog.deloadTagText || 'Deload week — aim ~1-2 RPE lower / consider dropping the last set')}</span>`:''}
   `;
 
   dayExercises.forEach((ex, exi)=>{
@@ -426,7 +688,7 @@ function renderTrain(){
       <div class="ex-head">
         <div>
           <div class="ex-name">${escapeHtml(displayName)}${cautionBadge}${swappedTo?`<span class="swapped">swapped from ${escapeHtml(ex.name)}</span>`:''}</div>
-          <div class="ex-meta">${ex.sets}×${ex.reps} · RPE ${entry.deload? Math.max(5,ex.rpe-1): ex.rpe} · rest ${ex.rest} min</div>
+          <div class="ex-meta">${ex.sets}×${ex.reps} · RPE ${(entry.deload && !prog.bakedRpe)? Math.max(5,ex.rpe-1): ex.rpe} · rest ${ex.rest} min</div>
         </div>
         <div class="ex-actions">
           ${info.sub? `<button class="iconbtn" title="Swap exercise" onclick="openSwap(${exi})">🔁</button>`:''}
@@ -565,7 +827,8 @@ function currentDraftKey(){
 function openInfo(exi){
   const progId = state.activeProgram; const prog = PROGRAMS[progId];
   const {entry, dayIdx} = getPos(progId);
-  const ex = prog.blocks[entry.blockIndex].days[dayIdx][exi];
+  const dayExercises = getSessionExercises(prog.blocks[entry.blockIndex].days[dayIdx], state.physioRotationIndex);
+  const ex = dayExercises[exi];
   const info = EX[ex.name] || {};
   let html = `<button class="close" onclick="closeModal()">✕</button><h3>${escapeHtml(ex.name)}</h3>
     <div class="ex-meta">${ex.sets}×${ex.reps} · RPE ${ex.rpe} · rest ${ex.rest} min</div>
@@ -579,7 +842,8 @@ function openInfo(exi){
 function openSwap(exi){
   const progId = state.activeProgram; const prog = PROGRAMS[progId];
   const {entry, dayIdx} = getPos(progId);
-  const ex = prog.blocks[entry.blockIndex].days[dayIdx][exi];
+  const dayExercises = getSessionExercises(prog.blocks[entry.blockIndex].days[dayIdx], state.physioRotationIndex);
+  const ex = dayExercises[exi];
   const info = EX[ex.name] || {};
   let html = `<button class="close" onclick="closeModal()">✕</button><h3>Swap ${escapeHtml(ex.name)}</h3>
     <p class="small">Substitute from the programme's swap list. Sets/reps/rest stay the same.</p>
@@ -608,7 +872,7 @@ function resetSession(){
 function saveSession(){
   const progId = state.activeProgram; const prog = PROGRAMS[progId];
   const {entry, dayIdx} = getPos(progId);
-  const dayExercises = prog.blocks[entry.blockIndex].days[dayIdx];
+  const dayExercises = getSessionExercises(prog.blocks[entry.blockIndex].days[dayIdx], state.physioRotationIndex);
   const draftKey = `${entry.week}_${dayIdx}`;
   const st = state.programs[progId];
   const draft = st.draft[draftKey] || {};
@@ -620,10 +884,11 @@ function saveSession(){
     return {name: dEx.swap || ex.name, swappedFrom: dEx.swap? ex.name : null, sets, notes: dEx.note||''};
   });
 
+  const now = Date.now();
   const record = {
     program: progId, programLabel: prog.label, week: entry.week, deload: entry.deload,
     dayIndex: dayIdx, dayLabel: prog.dayLabels[dayIdx], date: new Date().toISOString().slice(0,10),
-    savedAt: Date.now(), user: state.name, exercises: exercisesOut
+    savedAt: now, sessionId: now, user: state.name, exercises: exercisesOut
   };
   history.unshift(record);
   saveHistory();
@@ -633,20 +898,26 @@ function saveSession(){
 
   // clear draft, advance
   st.draft[draftKey] = {};
-  advanceSequence(progId);
+  const justCompleted = advanceSequence(progId);
+  state.physioRotationIndex = (state.physioRotationIndex + 1) % PHYSIO_EXERCISES.length;
   saveState();
   renderAll();
-  showToast(advanceToastMessage(progId));
+  if(justCompleted && prog.finite){
+    openProgramPicker(true, prog.label);
+  } else {
+    showToast(advanceToastMessage(progId));
+  }
 }
 function advanceSequence(progId){
   const {totalSessions} = getPos(progId);
   const st = state.programs[progId];
   st.seqIndex = (st.seqIndex + 1) % totalSessions; // loop back to Week 1 / programme complete
+  return st.seqIndex === 0; // true if this save just wrapped the programme back to the start
 }
 function advanceToastMessage(progId){
   const {entry, dayIdx, seqIndex} = getPos(progId);
   const prog = PROGRAMS[progId];
-  if(seqIndex===0) return `Session saved! Programme complete — looping back to Week 1. Nice work.`;
+  if(seqIndex===0) return `Session saved! Looping back to the start. Nice work.`;
   if(dayIdx===0 && !entry.deload) return `Session saved! Week ${entry.week} starts — ${prog.dayLabels[0]} ready.`;
   if(dayIdx===0 && entry.deload) return `Session saved! Deload week ready — ease off the intensity a little.`;
   return `Session saved! Next up: ${prog.dayLabels[dayIdx]}.`;
@@ -661,14 +932,72 @@ function pushToSheets(record){
   const rows = [];
   record.exercises.forEach(ex=>{
     ex.sets.forEach((s,i)=>{
-      rows.push({exercise:ex.name, set:i+1, weight:s.weight, reps:s.reps, notes:ex.notes, ticked:s.done});
+      rows.push({exercise:ex.name, swappedFrom:ex.swappedFrom||'', set:i+1, weight:s.weight, reps:s.reps, notes:ex.notes||'', ticked:!!s.done});
     });
   });
   const payload = {
-    user: state.name, date: record.date, program: record.programLabel, week: record.week,
-    deload: record.deload, dayIndex: record.dayIndex, dayLabel: record.dayLabel, sets: rows
+    type:'session', sessionId: record.sessionId, user: state.name, date: record.date,
+    program: record.program, programLabel: record.programLabel, week: record.week,
+    deload: !!record.deload, dayIndex: record.dayIndex, dayLabel: record.dayLabel, rows
   };
   fetch(state.sheetsUrl, {method:'POST', body: JSON.stringify(payload)}).catch(()=>{});
+}
+
+function pushStateToSheets(updatedAt){
+  if(!state.sheetsUrl || !state.name) return;
+  const snapshot = JSON.parse(JSON.stringify(state));
+  delete snapshot.sheetsUrl; // device-local config, never synced
+  const payload = { type:'state', user: state.name, updatedAt: updatedAt||Date.now(), stateJSON: JSON.stringify(snapshot) };
+  fetch(state.sheetsUrl, {method:'POST', body: JSON.stringify(payload)}).catch(()=>{});
+}
+
+async function restoreFromSheets(manual){
+  if(!state.sheetsUrl){ if(manual) showToast('Add your Apps Script URL in Settings first.'); return; }
+  let data;
+  try{
+    const sep = state.sheetsUrl.includes('?') ? '&' : '?';
+    const url = state.sheetsUrl + sep + 'user=' + encodeURIComponent(state.name||'');
+    const res = await fetch(url);
+    data = await res.json();
+  }catch(err){
+    if(manual) showToast('Sync failed — check your connection or Apps Script URL.');
+    return;
+  }
+
+  let added = 0;
+  if(Array.isArray(data.sessions)){
+    const known = new Set(history.map(h=> h.sessionId || h.savedAt));
+    data.sessions.forEach(remote=>{
+      const key = remote.sessionId || remote.savedAt;
+      if(!known.has(key)){ history.push(remote); known.add(key); added++; }
+    });
+    history.sort((a,b)=> (b.savedAt||0)-(a.savedAt||0));
+    if(added) saveHistory();
+  }
+
+  let restoredPosition = false;
+  if(data.state && data.state.stateJSON){
+    const remoteUpdatedAt = data.state.updatedAt || 0;
+    if(remoteUpdatedAt > (state.stateSyncedAt||0)){
+      try{
+        const remoteState = JSON.parse(data.state.stateJSON);
+        const keepUrl = state.sheetsUrl;
+        Object.assign(state, remoteState);
+        state.sheetsUrl = keepUrl;
+        state.stateSyncedAt = remoteUpdatedAt;
+        localStorage.setItem(LS_STATE, JSON.stringify(state)); // persist WITHOUT calling saveState() (avoid re-pushing what we just pulled)
+        restoredPosition = true;
+      }catch(err){ /* ignore malformed remote state, don't crash */ }
+    }
+  }
+
+  renderAll();
+  if(manual){
+    if(added && restoredPosition) showToast(`Synced: pulled in ${added} session(s) and your latest programme position.`);
+    else if(added) showToast(`Synced: pulled in ${added} new session(s).`);
+    else if(restoredPosition) showToast(`Synced: programme position updated from Sheets.`);
+    else showToast(`Already up to date.`);
+  }
 }
 
 /* ============ PROGRESS TAB ============ */
@@ -740,12 +1069,16 @@ function renderHistory(){
 function renderSettings(){
   document.getElementById('setName').value = state.name||'';
   document.getElementById('setSheetsUrl').value = state.sheetsUrl||'';
-  const sel = document.getElementById('setProgramSelect');
-  sel.innerHTML = Object.values(PROGRAMS).map(p=> `<option value="${p.id}" ${p.id===state.activeProgram?'selected':''}>${p.label} (${p.daysPerWeek}x/week)</option>`).join('');
+
+  const syncedLabel = state.stateSyncedAt ? `Last synced: ${new Date(state.stateSyncedAt).toLocaleString()}` : 'Never synced yet';
+  const nameHint = (state.sheetsUrl && !state.name) ? ' — set your name above too, programme-position sync needs it to find your row in Sheets.' : '';
+  document.getElementById('lastSyncedLabel').textContent = syncedLabel + nameHint;
 
   const progId = state.activeProgram; const prog = PROGRAMS[progId];
+  document.getElementById('progCurrentLabel').textContent = `Currently on: ${prog.label} (${prog.daysPerWeek}x/week${prog.finite? `, ${prog.totalWeeks} weeks`:', ongoing'})`;
   const {seq, weekPointer} = getPos(progId);
   document.getElementById('deloadSwitch').className = 'switch ' + (state.programs[progId].deload?'on':'');
+  document.getElementById('deloadToggleRow').style.display = (prog.family==='nippard') ? 'flex' : 'none';
   document.getElementById('cautionSwitch').className = 'switch ' + (state.cautionOn?'on':'');
 
   const weekSel = document.getElementById('setWeekSelect');
@@ -814,7 +1147,9 @@ function renderAll(){
   if(document.getElementById('page-history').classList.contains('active')) renderHistory();
   if(document.getElementById('page-settings').classList.contains('active')) renderSettings();
 }
+seedJsaHistoryIfNeeded();
 renderAll();
+restoreFromSheets(false);
 </script>
 </body>
 </html>
