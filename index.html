@@ -57,6 +57,12 @@ button.secondary{background:var(--card2); color:var(--sub); border:1px solid var
 .tabs button .ic{font-size:19px;}
 .tabs button.active{color:var(--accent);}
 .page{display:none;} .page.active{display:block;}
+.gymbar{display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:10px;}
+.gymchip{background:var(--card2); border:1px solid var(--border); color:var(--text); border-radius:999px; padding:6px 12px; font-size:13px;}
+.gymchip.on{border-color:var(--accent); color:var(--accent);}
+.eqgrid{display:grid; grid-template-columns:1fr; gap:4px; margin:8px 0;}
+.eqgrid label{display:flex; gap:8px; align-items:center; font-size:13px;}
+.rulerow{display:flex; justify-content:space-between; align-items:center; gap:8px; padding:6px 0; border-top:1px solid var(--border); font-size:13px;}
 .field{margin-bottom:14px;}
 .field label{display:block; font-size:12.5px; color:var(--sub); margin-bottom:6px;}
 .field input[type=text],.field input[type=url],.field select{width:100%; background:var(--card2); border:1px solid var(--border); color:var(--text); border-radius:10px; padding:11px; font-size:14px;}
@@ -189,6 +195,18 @@ a{color:var(--accent);}
     </div>
 
     <div class="card">
+      <h3>Gyms &amp; equipment</h3>
+      <p class="small">Tick the equipment each gym HAS. When you pick a gym on the Train tab (or set a weekday below), exercises that need missing kit are swapped to the best alternative that works there — labelled "auto-swapped", and revertible with 🔁. Until you enter real equipment lists, nothing is swapped for equipment reasons.</p>
+      <div id="gymSettings"></div>
+    </div>
+
+    <div class="card">
+      <h3>My exercise preferences</h3>
+      <p class="small">"Always use Y instead of X" — applied automatically each session whenever Y's equipment is available. Useful for lifts you'd rather avoid.</p>
+      <div id="prefSettings"></div>
+    </div>
+
+    <div class="card">
       <h3>Manually set position</h3>
       <p class="small">Overrides the current programme's week and day.</p>
       <div class="field">
@@ -233,6 +251,7 @@ const EX = {
 "Deadlift": {muscle:"hamstrings", cue:"Brace your lats, chest tall, hips high, pull the slack out of the bar prior to moving it off the ground.", video:{url:"https://www.youtube.com/watch?v=fc4_hq7tjkU",title:"Deadlift Technique"}, sub:"Leg Press + 15 reps of lower back extensions", caution:"Heavy axial-loading compound lift with hard bracing — check in with your surgeon/physio on load before pushing this hard."},
 "Romanian Deadlift": {muscle:"hamstrings", cue:"Maintain a neutral lower back, set your hips back, don't allow your spine to round.", video:{url:"https://www.youtube.com/watch?v=SE-2Y-3a1pY",title:"Romanian Deadlift Technique"}, sub:"Glute Ham Raise", caution:"Loaded hip-hinge — moderate bracing demand, watch for any spinal rounding under fatigue."},
 "Barbell Hip Thrust": {muscle:"glutes", cue:"Tuck your chin and rib cage down, only move your hips. Use a pad.", video:{url:"https://www.youtube.com/watch?v=RjWiwq1wgFg",title:"Barbell Hip Thrust Technique"}, sub:"Glute Bridge (bodyweight)", caution:"Heavy loaded hip extension with a bar across the hips/lower abdomen — worth checking comfort here specifically."},
+"Hip Thrust Machine": {muscle:"glutes", cue:"Back supported on the pad, drive through your heels, squeeze your glutes hard at the top, don't hyperextend your lower back. Machine does the set-up and balance for you — same movement as a Barbell Hip Thrust.", video:{url:"https://www.youtube.com/results?search_query=hip+thrust+machine+technique",title:"Hip Thrust Machine — technique reference"}, sub:["Glute Bridge","Cable Pull-Through","Barbell Hip Thrust"], caution:"Still a loaded hip extension — the machine removes the bar set-up and balance, but check comfort at the repair site as you add load."},
 "Dumbbell Single-Leg Hip Thrust": {muscle:"glutes", cue:"Place the dumbbell on your working thigh, tuck your chin and rib cage down, only move your hips.", video:{url:"https://www.youtube.com/watch?v=1u-b25VJVFU",title:"Single-Leg Hip Thrust (PureGym)"}, sub:null, caution:null},
 "Leg Extension": {muscle:"quads", cue:"Focus on squeezing your quads to make the weight move.", video:{url:"https://www.youtube.com/watch?v=1CHV0-armIc",title:"Leg Extension Technique"}, sub:"Not mandatory for quad growth — simply remove from the programme if unable to perform", caution:null},
 "Single-Leg Leg Extension": {muscle:"quads", cue:"Focus on squeezing your quads to make the weight move.", video:{url:"https://www.youtube.com/watch?v=3VIpG6rtFAc",title:"Single-Leg Leg Extension Technique"}, sub:null, caution:null},
@@ -242,19 +261,19 @@ const EX = {
 "Seated Leg Curl": {muscle:"hamstrings", cue:"Focus on squeezing your hamstrings to make the weight move.", video:{url:"https://www.youtube.com/watch?v=ELOCsoDSmrg",title:"Seated Leg Curl (ScottHermanFitness)"}, sub:null, caution:null},
 "Dumbbell Walking Lunge": {muscle:"quads", cue:"Take medium strides, let your torso lean forward.", video:{url:"https://www.youtube.com/watch?v=vni4lElTvsY",title:"DB Walking Lunge Technique"}, sub:"Single Leg Dumbbell Hip Thrust", caution:null},
 "Standing Calf Raise": {muscle:"calves", cue:"Press all the way up to your toes, stretch your calves at the bottom, don't bounce.", video:{url:"https://www.youtube.com/watch?v=7AVIgDN72c0",title:"Standing Calf Raise Technique"}, sub:"Dumbbell Standing Calf Raise (hold a dumbbell in one hand, other hand for balance)", caution:null},
-"Machine Seated Hip Abduction": {muscle:"glutes", cue:"Keep your butt in the seat, focus on squeezing your glutes to make the weight move.", video:{url:"https://www.youtube.com/watch?v=eKfVJ0YM8lY",title:"Seated Hip Abduction Technique"}, sub:"Standing Cable Hip Abduction, or Plate-Loaded Hip Abduction", caution:null},
+"Machine Seated Hip Abduction": {muscle:"glutes", cue:"Keep your butt in the seat, focus on squeezing your glutes to make the weight move.", video:{url:"https://www.youtube.com/watch?v=eKfVJ0YM8lY",title:"Seated Hip Abduction Technique"}, sub:["Standing Cable Hip Abduction", "Plate-Loaded Hip Abduction"], caution:null},
 "Crunch": {muscle:"core", cue:"Focus on flexing your spine, don't yank your head with your arms.", video:{url:"https://www.youtube.com/watch?v=NGRKFMKhF8s",title:"Crunch Technique"}, sub:null, caution:"Direct loaded core-flexion work — stop if you feel any pulling, straining or discomfort at the repair site."},
 "Bicycle Crunch": {muscle:"core", cue:"Focus on flexing and rotating your spine, bring your left elbow to right knee, right elbow to left knee.", video:{url:"https://www.youtube.com/watch?v=wnuLak2onoA",title:"Bicycle Crunch (PureGym)"}, sub:"Single Dead Bug", caution:"Loaded core flexion + rotation — stop if you feel any pulling, straining or discomfort at the repair site."},
 "Hanging Leg Raise": {muscle:"core", cue:"Focus on flexing your lower back, perform off of Captain's Chair.", video:{url:"https://www.youtube.com/watch?v=Yrtvs-nEnk0",title:"Hanging Leg Raise (PureGym)"}, sub:"Single Dead Bug", caution:"Hanging core-flexion work under load — stop if you feel any pulling, straining or discomfort at the repair site."},
 "Plank": {muscle:"core", cue:"Squeeze your glutes, keep your hips low.", video:{url:"https://www.youtube.com/watch?v=kL_NJAkCQBg",title:"Plank Technique"}, sub:"Single Dead Bug", caution:"Isometric core bracing — generally lower-risk than loaded flexion, but ease in and stop if uncomfortable."},
-"Barbell Bench Press": {muscle:"chest", cue:"Tuck elbows at a 45° angle, squeeze your shoulder blades and stay firm on the bench.", video:{url:"https://www.youtube.com/watch?v=esQi683XR44",title:"Barbell Bench Press Technique"}, sub:"Dumbbell Bench Press or Hammer Strength Machine Press", caution:null},
+"Barbell Bench Press": {muscle:"chest", cue:"Tuck elbows at a 45° angle, squeeze your shoulder blades and stay firm on the bench.", video:{url:"https://www.youtube.com/watch?v=esQi683XR44",title:"Barbell Bench Press Technique"}, sub:["Dumbbell Bench Press", "Hammer Strength Machine Press"], caution:null},
 "Close-Grip Bench Press": {muscle:"triceps", cue:"Shoulder width grip, tuck your elbows against your sides.", video:{url:"https://www.youtube.com/watch?v=DzA2xZhDGeo",title:"Close-Grip Bench Press (PureGym)"}, sub:null, caution:"Heavy bracing under a loaded bar — moderate caution, similar to standard bench."},
 "Dumbbell Incline Press": {muscle:"chest", cue:"Keep your scapulae retracted and depressed.", video:{url:"https://www.youtube.com/watch?v=8iPEnn-ltC8",title:"DB Incline Press Technique"}, sub:"Hammer Strength Machine Incline Press", caution:null},
 "Dumbbell Floor Press": {muscle:"chest", cue:"Tuck your elbows against your sides.", video:{url:"https://www.youtube.com/watch?v=T0Y3OBF1bNI",title:"DB Floor Press (PureGym)"}, sub:null, caution:null},
-"Cable Flye": {muscle:"chest", cue:"Keep your scapulae retracted, pull your inner elbows together (not your hands).", video:{url:"https://www.youtube.com/watch?v=KJwiu8ttuZ0",title:"Cable Flye Technique"}, sub:"Dumbbell Fly or Pec Deck", caution:null},
+"Cable Flye": {muscle:"chest", cue:"Keep your scapulae retracted, pull your inner elbows together (not your hands).", video:{url:"https://www.youtube.com/watch?v=KJwiu8ttuZ0",title:"Cable Flye Technique"}, sub:["Dumbbell Fly", "Pec Deck"], caution:null},
 "Pec Deck": {muscle:"chest", cue:"Keep your scapulae retracted, pull your inner elbows together (not your hands).", video:{url:"https://www.youtube.com/watch?v=eGjt4lk6g34",title:"Pec Deck / Chest Fly Machine (PureGym)"}, sub:null, caution:null},
 "Machine Incline Chest Press": {muscle:"chest", cue:"Keep your scapulae retracted and depressed.", video:{url:"https://www.youtube.com/watch?v=ig0NyNlSce4",title:"Incline Chest Press Machine (ScottHermanFitness)"}, sub:null, caution:null},
-"Assisted Dip": {muscle:"chest", cue:"Tuck elbows at a 45° angle, lean your torso forward 15°.", video:{url:"https://www.youtube.com/watch?v=wjUmnZH528Y",title:"Assisted Dip Technique"}, sub:"Decline Dumbbell/Barbell/Hammer Strength Press", caution:null},
+"Assisted Dip": {muscle:"chest", cue:"Tuck elbows at a 45° angle, lean your torso forward 15°.", video:{url:"https://www.youtube.com/watch?v=wjUmnZH528Y",title:"Assisted Dip Technique"}, sub:["Dip", "Decline Dumbbell Press", "Decline Barbell Press", "Decline Hammer Strength Press"], caution:null},
 "Dumbbell Skull Crusher": {muscle:"triceps", cue:"Keep your elbows in line with the top of your head, don't let your upper arm move.", video:{url:"https://www.youtube.com/watch?v=ZUZOn9c1VVI",title:"DB Skull Crusher Technique"}, sub:null, caution:null},
 "Single-Arm Rope Tricep Extension": {muscle:"triceps", cue:"Pull your arm behind your torso, don't move your upper arm.", video:{url:"https://www.youtube.com/watch?v=FxK2mF0iPXs",title:"Rope Tricep Extension Technique"}, sub:null, caution:null},
 "Cable Tricep Kickback": {muscle:"triceps", cue:"Keep your elbows behind your torso, don't let your upper arm move.", video:{url:"https://www.youtube.com/watch?v=0iyTw2wnvUU",title:"Cable Tricep Kickback (Seriously Strong Training)"}, sub:null, caution:null},
@@ -335,37 +354,37 @@ const EX = {
    Primary lifts (Back Squat, Deadlift, Barbell Bench Press, Overhead Press/Military Press)
    and renamed/equivalent variants (Reset Deadlift, Barbell Overhead Press) reuse the existing
    entries above via each exercise row's `baseName` field rather than duplicating metadata here. */
-"Pronated Pulldown": {muscle:"back", cue:"Pull your elbows down and in using a wide overhand grip, drive your elbows past your ribs.", video:{url:"https://www.youtube.com/results?search_query=pronated+lat+pulldown+technique",title:"Pronated (Wide-Grip) Pulldown — technique reference"}, sub:"Pull-Up or Supinated Pulldown", caution:null},
-"Supinated EZ Bar Curl": {muscle:"biceps", cue:"Underhand grip on an EZ bar, press your pinky into the bar, curl without swinging. On dropset sets, strip the weight and continue straight into the next set.", video:{url:"https://www.youtube.com/results?search_query=supinated+ez+bar+curl+technique",title:"Supinated EZ Bar Curl — technique reference"}, sub:"Dumbbell Curl or Cable Curl", caution:null},
-"Low to High Cable Flye": {muscle:"chest", cue:"Set the cable low, pull your elbows (not your hands) up and across your body, squeeze your upper chest at the top.", video:{url:"https://www.youtube.com/results?search_query=low+to+high+cable+fly+technique",title:"Low-to-High Cable Fly — technique reference"}, sub:"Pec Deck or Dumbbell Flye", caution:null},
-"Arnold Press": {muscle:"shoulders", cue:"Start with palms facing you at shoulder height, rotate your palms to face forward as you press overhead.", video:{url:"https://www.youtube.com/results?search_query=arnold+press+technique",title:"Arnold Press — technique reference"}, sub:"Dumbbell Seated Shoulder Press or Machine Shoulder Press", caution:null},
-"Tricep Pressdown": {muscle:"triceps", cue:"Elbows pinned to your sides, squeeze your triceps to move the weight, don't lean on the bar.", video:{url:"https://www.youtube.com/results?search_query=tricep+pressdown+technique",title:"Tricep Pressdown — technique reference"}, sub:"Rope Overhead Triceps Extension or Dumbbell Kickback", caution:null},
+"Pronated Pulldown": {muscle:"back", cue:"Pull your elbows down and in using a wide overhand grip, drive your elbows past your ribs.", video:{url:"https://www.youtube.com/results?search_query=pronated+lat+pulldown+technique",title:"Pronated (Wide-Grip) Pulldown — technique reference"}, sub:["Pull-Up", "Supinated Pulldown"], caution:null},
+"Supinated EZ Bar Curl": {muscle:"biceps", cue:"Underhand grip on an EZ bar, press your pinky into the bar, curl without swinging. On dropset sets, strip the weight and continue straight into the next set.", video:{url:"https://www.youtube.com/results?search_query=supinated+ez+bar+curl+technique",title:"Supinated EZ Bar Curl — technique reference"}, sub:["Dumbbell Curl", "Cable Curl"], caution:null},
+"Low to High Cable Flye": {muscle:"chest", cue:"Set the cable low, pull your elbows (not your hands) up and across your body, squeeze your upper chest at the top.", video:{url:"https://www.youtube.com/results?search_query=low+to+high+cable+fly+technique",title:"Low-to-High Cable Fly — technique reference"}, sub:["Pec Deck", "Dumbbell Flye"], caution:null},
+"Arnold Press": {muscle:"shoulders", cue:"Start with palms facing you at shoulder height, rotate your palms to face forward as you press overhead.", video:{url:"https://www.youtube.com/results?search_query=arnold+press+technique",title:"Arnold Press — technique reference"}, sub:["Dumbbell Seated Shoulder Press", "Machine Shoulder Press"], caution:null},
+"Tricep Pressdown": {muscle:"triceps", cue:"Elbows pinned to your sides, squeeze your triceps to move the weight, don't lean on the bar.", video:{url:"https://www.youtube.com/results?search_query=tricep+pressdown+technique",title:"Tricep Pressdown — technique reference"}, sub:["Rope Overhead Triceps Extension", "Dumbbell Kickback"], caution:null},
 "Hex Bar or Smith Machine Shrug": {muscle:"back", cue:"Shrug straight up and slightly back, pause briefly at the top, don't roll your shoulders.", video:{url:"https://www.youtube.com/results?search_query=hex+bar+shrug+technique",title:"Hex Bar / Smith Machine Shrug — technique reference"}, sub:"Dumbbell Shrug", caution:null},
-"Weighted Pull-Up": {muscle:"back", cue:"1.5x shoulder-width grip, pull your chest to the bar, add weight via belt or vest once bodyweight reps feel easy.", video:{url:"https://www.youtube.com/results?search_query=weighted+pull+up+technique",title:"Weighted Pull-Up — technique reference"}, sub:"Lat Pulldown or Neutral-Grip Pull-Up", caution:null},
-"Humble Row": {muscle:"back", cue:"Pin your lower chest against the top of an incline bench, row with your elbows, squeeze your shoulder blades together at the top.", video:{url:"https://www.youtube.com/results?search_query=humble+row+technique",title:"Humble Row — technique reference"}, sub:"Chest-Supported T-Bar Row (pronated grip) or Seal Row", caution:null},
-"Cable Rope Upright Row": {muscle:"shoulders", cue:"Pull the rope straight up toward chest height, lead with your elbows, squeeze your upper traps at the top.", video:{url:"https://www.youtube.com/results?search_query=cable+rope+upright+row+technique",title:"Cable Rope Upright Row — technique reference"}, sub:"Machine Lateral Raise or Face Pull", caution:null},
-"Dip": {muscle:"chest", cue:"Elbows flared to about 45°, lean your torso forward 15°, scapulae retracted, lower until you feel a stretch in your chest.", video:{url:"https://www.youtube.com/results?search_query=chest+dip+technique",title:"Dip — technique reference"}, sub:"Assisted Dip, Machine Dip or Close-Grip Bench Press", caution:null},
-"Glute Ham Raise": {muscle:"hamstrings", cue:"Keep your lower back straight throughout, control the lowering, drive back up by contracting your hamstrings.", video:{url:"https://www.youtube.com/results?search_query=glute+ham+raise+technique",title:"Glute Ham Raise — technique reference"}, sub:"Glute Bridge, Reverse Hyper or Cable Pull-Through", caution:null},
+"Weighted Pull-Up": {muscle:"back", cue:"1.5x shoulder-width grip, pull your chest to the bar, add weight via belt or vest once bodyweight reps feel easy.", video:{url:"https://www.youtube.com/results?search_query=weighted+pull+up+technique",title:"Weighted Pull-Up — technique reference"}, sub:["Lat Pulldown", "Neutral-Grip Pull-Up"], caution:null},
+"Humble Row": {muscle:"back", cue:"Pin your lower chest against the top of an incline bench, row with your elbows, squeeze your shoulder blades together at the top.", video:{url:"https://www.youtube.com/results?search_query=humble+row+technique",title:"Humble Row — technique reference"}, sub:["Chest-Supported T-Bar Row (pronated grip)", "Seal Row"], caution:null},
+"Cable Rope Upright Row": {muscle:"shoulders", cue:"Pull the rope straight up toward chest height, lead with your elbows, squeeze your upper traps at the top.", video:{url:"https://www.youtube.com/results?search_query=cable+rope+upright+row+technique",title:"Cable Rope Upright Row — technique reference"}, sub:["Machine Lateral Raise", "Face Pull"], caution:null},
+"Dip": {muscle:"chest", cue:"Elbows flared to about 45°, lean your torso forward 15°, scapulae retracted, lower until you feel a stretch in your chest.", video:{url:"https://www.youtube.com/results?search_query=chest+dip+technique",title:"Dip — technique reference"}, sub:["Assisted Dip", "Machine Dip", "Close-Grip Bench Press"], caution:null},
+"Glute Ham Raise": {muscle:"hamstrings", cue:"Keep your lower back straight throughout, control the lowering, drive back up by contracting your hamstrings.", video:{url:"https://www.youtube.com/results?search_query=glute+ham+raise+technique",title:"Glute Ham Raise — technique reference"}, sub:["Glute Bridge", "Reverse Hyper", "Cable Pull-Through"], caution:null},
 "Cable Pull-Over": {muscle:"back", cue:"Hinge your torso to about 45°, pull the weight straight down (not 'in'), feel the stretch and squeeze through your lats.", video:{url:"https://www.youtube.com/results?search_query=cable+pullover+technique",title:"Cable Pull-Over — technique reference"}, sub:"Lying Dumbbell Pullover", caution:null},
-"Rope Face Pull": {muscle:"shoulders", cue:"Pull the rope apart toward your face, elbows up and out, squeeze your shoulder blades together at the end of the movement.", video:{url:"https://www.youtube.com/results?search_query=rope+face+pull+technique",title:"Rope Face Pull — technique reference"}, sub:"Reverse Dumbbell Flye or Reverse Cable Crossover", caution:null},
-"EZ Bar Skull Crusher": {muscle:"triceps", cue:"Arc the bar back behind your head as you lower, keep your upper arms still, extend back to lockout.", video:{url:"https://www.youtube.com/results?search_query=ez+bar+skull+crusher+technique",title:"EZ Bar Skull Crusher — technique reference"}, sub:"Floor Press, Pin Press or JM Press", caution:null},
-"Egyptian Lateral Raise": {muscle:"shoulders", cue:"Lean away from the cable, 2-second eccentric, raise the weight out to the side rather than up.", video:{url:"https://www.youtube.com/results?search_query=egyptian+lateral+raise+technique",title:"Egyptian Lateral Raise — technique reference"}, sub:"Dumbbell Lateral Raise or Machine Lateral Raise", caution:null},
+"Rope Face Pull": {muscle:"shoulders", cue:"Pull the rope apart toward your face, elbows up and out, squeeze your shoulder blades together at the end of the movement.", video:{url:"https://www.youtube.com/results?search_query=rope+face+pull+technique",title:"Rope Face Pull — technique reference"}, sub:["Reverse Dumbbell Flye", "Reverse Cable Crossover"], caution:null},
+"EZ Bar Skull Crusher": {muscle:"triceps", cue:"Arc the bar back behind your head as you lower, keep your upper arms still, extend back to lockout.", video:{url:"https://www.youtube.com/results?search_query=ez+bar+skull+crusher+technique",title:"EZ Bar Skull Crusher — technique reference"}, sub:["Floor Press", "Pin Press", "JM Press"], caution:null},
+"Egyptian Lateral Raise": {muscle:"shoulders", cue:"Lean away from the cable, 2-second eccentric, raise the weight out to the side rather than up.", video:{url:"https://www.youtube.com/results?search_query=egyptian+lateral+raise+technique",title:"Egyptian Lateral Raise — technique reference"}, sub:["Dumbbell Lateral Raise", "Machine Lateral Raise"], caution:null},
 "Seated Hip Abduction": {muscle:"glutes", cue:"Keep your torso still, drive your knees out against the pads, squeeze your outer glutes.", video:{url:"https://www.youtube.com/results?search_query=seated+hip+abduction+machine+technique",title:"Seated Hip Abduction — technique reference"}, sub:"Lateral Band Walk", caution:null},
-"Push Up": {muscle:"chest", cue:"Hands just outside shoulder width, lower under control until your chest nears the floor, press back up keeping your core braced.", video:{url:"https://www.youtube.com/results?search_query=push+up+technique",title:"Push Up — technique reference"}, sub:"Dumbbell Floor Press or Machine Chest Press", caution:null},
-"Swiss Ball Leg Curl": {muscle:"hamstrings", cue:"Heels dig into the ball, keep your hips lifted throughout, curl the ball in by flexing your hamstrings.", video:{url:"https://www.youtube.com/results?search_query=swiss+ball+leg+curl+technique",title:"Swiss Ball Leg Curl — technique reference"}, sub:"Sliding Leg Curl or Seated Leg Curl", caution:null},
-"Chin-Up": {muscle:"back", cue:"Supinated (underhand) grip about shoulder width, pull with your lats, chest to the bar.", video:{url:"https://www.youtube.com/results?search_query=chin+up+technique",title:"Chin-Up — technique reference"}, sub:"Lat Pulldown or Neutral-Grip Pull-Up", caution:null},
+"Push Up": {muscle:"chest", cue:"Hands just outside shoulder width, lower under control until your chest nears the floor, press back up keeping your core braced.", video:{url:"https://www.youtube.com/results?search_query=push+up+technique",title:"Push Up — technique reference"}, sub:["Dumbbell Floor Press", "Machine Chest Press"], caution:null},
+"Swiss Ball Leg Curl": {muscle:"hamstrings", cue:"Heels dig into the ball, keep your hips lifted throughout, curl the ball in by flexing your hamstrings.", video:{url:"https://www.youtube.com/results?search_query=swiss+ball+leg+curl+technique",title:"Swiss Ball Leg Curl — technique reference"}, sub:["Sliding Leg Curl", "Seated Leg Curl"], caution:null},
+"Chin-Up": {muscle:"back", cue:"Supinated (underhand) grip about shoulder width, pull with your lats, chest to the bar.", video:{url:"https://www.youtube.com/results?search_query=chin+up+technique",title:"Chin-Up — technique reference"}, sub:["Lat Pulldown", "Neutral-Grip Pull-Up"], caution:null},
 "Ab Wheel Rollout": {muscle:"core", cue:"Brace your glutes and core, roll out only as far as you can keep control, pull back in by contracting your abs rather than yanking with your arms.", video:{url:"https://www.youtube.com/results?search_query=ab+wheel+rollout+technique",title:"Ab Wheel Rollout — technique reference"}, sub:"Single Dead Bug", caution:"Loaded anti-extension bracing movement with a high intra-abdominal pressure demand — arguably more intense than a plank. Check in with your surgeon/physio before loading this hard; the Single Dead Bug swap above is a gentler, physio-approved alternative."},
-"Low Incline Dumbbell Press": {muscle:"chest", cue:"Shallow ~15° bench angle, tuck your elbows, press up and slightly back toward your face.", video:{url:"https://www.youtube.com/results?search_query=low+incline+dumbbell+press+technique",title:"Low Incline Dumbbell Press — technique reference"}, sub:"Low Incline Machine Press or Low Incline Barbell Press", caution:null},
+"Low Incline Dumbbell Press": {muscle:"chest", cue:"Shallow ~15° bench angle, tuck your elbows, press up and slightly back toward your face.", video:{url:"https://www.youtube.com/results?search_query=low+incline+dumbbell+press+technique",title:"Low Incline Dumbbell Press — technique reference"}, sub:["Low Incline Machine Press", "Low Incline Barbell Press"], caution:null},
 "Overhead Tricep Extension": {muscle:"triceps", cue:"Elbows pointed forward and still, lower the weight behind your head, extend back to lockout squeezing your triceps.", video:{url:"https://www.youtube.com/results?search_query=overhead+tricep+extension+technique",title:"Overhead Tricep Extension — technique reference"}, sub:"Dumbbell Overhead Triceps Extension", caution:null},
-"Banded Chest-Supported T-Bar Row": {muscle:"back", cue:"Chest braced on the pad, band adds tension through the top of the row, explode at the bottom and drive your elbows back hard.", video:{url:"https://www.youtube.com/results?search_query=banded+chest+supported+t+bar+row+technique",title:"Banded Chest-Supported T-Bar Row — technique reference"}, sub:"Cable Seated Row with band, or Eccentric-Accentuated Chest-Supported T-Bar Row", caution:null},
-"Single-Leg Leg Press": {muscle:"quads", cue:"One foot on the platform at a time, don't let your lower back round, control the descent.", video:{url:"https://www.youtube.com/results?search_query=single+leg+leg+press+technique",title:"Single-Leg Leg Press — technique reference"}, sub:"Assisted Pistol Squat or Dumbbell Step-Up", caution:null},
+"Banded Chest-Supported T-Bar Row": {muscle:"back", cue:"Chest braced on the pad, band adds tension through the top of the row, explode at the bottom and drive your elbows back hard.", video:{url:"https://www.youtube.com/results?search_query=banded+chest+supported+t+bar+row+technique",title:"Banded Chest-Supported T-Bar Row — technique reference"}, sub:["Cable Seated Row with band", "Eccentric-Accentuated Chest-Supported T-Bar Row"], caution:null},
+"Single-Leg Leg Press": {muscle:"quads", cue:"One foot on the platform at a time, don't let your lower back round, control the descent.", video:{url:"https://www.youtube.com/results?search_query=single+leg+leg+press+technique",title:"Single-Leg Leg Press — technique reference"}, sub:["Assisted Pistol Squat", "Dumbbell Step-Up"], caution:null},
 "Eccentric-Accentuated Standing Calf Raise": {muscle:"calves", cue:"Press onto your toes as normal, then take a full 4 seconds to lower back down under control.", video:{url:"https://www.youtube.com/results?search_query=eccentric+standing+calf+raise+technique",title:"Eccentric-Accentuated Standing Calf Raise — technique reference"}, sub:"Slow-Eccentric Leg Press Toe Press", caution:null},
 "Cable Single-Arm Curl": {muscle:"biceps", cue:"Shoulder extended slightly behind your torso for a full stretch, curl without swinging your elbow forward.", video:{url:"https://www.youtube.com/results?search_query=cable+single+arm+curl+technique",title:"Cable Single-Arm Curl — technique reference"}, sub:"Single-Arm Dumbbell Curl", caution:null},
 "Decline Bench Press": {muscle:"chest", cue:"Feet secured on a decline bench, lower the bar to your lower chest with constant tension, press back up.", video:{url:"https://www.youtube.com/results?search_query=decline+bench+press+technique",title:"Decline Bench Press — technique reference"}, sub:"Weighted Dip", caution:null},
 "Pendlay Row": {muscle:"back", cue:"Flat back at roughly 45°, bar starts dead on the floor each rep, pull explosively to your lower chest, elbows back and up.", video:{url:"https://www.youtube.com/results?search_query=pendlay+row+technique",title:"Pendlay Row — technique reference"}, sub:"Chest-Supported T-Bar Row", caution:"Same loaded, bent-over bracing demand as Barbell Bent Over Row — worth being mindful of."},
-"EZ Bar Curl 21s": {muscle:"biceps", cue:"7 reps in the bottom-half range, 7 reps in the top-half range, then 7 reps full range — keep constant tension, no resting at the top or bottom.", video:{url:"https://www.youtube.com/results?search_query=ez+bar+curl+21s+technique",title:"EZ Bar Curl 21s — technique reference"}, sub:"EZ Bar Curl, Dumbbell Curl 21s or Cable Curl 21s", caution:null},
-"Cable Crunch": {muscle:"core", cue:"Kneel facing the cable, flex your spine to bring your elbows toward your knees, avoid yanking with your arms.", video:{url:"https://www.youtube.com/results?search_query=cable+crunch+technique",title:"Cable Crunch — technique reference"}, sub:"Bodyweight Crunch or V Sit-Up", caution:"Loaded spinal-flexion work — same pattern as Crunch, just cable-resisted, so if anything a higher-IAP version. Stop if you feel any pulling, straining or discomfort at the repair site."},
-"Wide Grip Lat Pulldown": {muscle:"back", cue:"Wide overhand grip just outside shoulder width, pull your elbows down and back, lead with your chest.", video:{url:"https://www.youtube.com/results?search_query=wide+grip+lat+pulldown+technique",title:"Wide Grip Lat Pulldown — technique reference"}, sub:"Pull-Up or Reverse Grip Lat Pulldown", caution:null},
+"EZ Bar Curl 21s": {muscle:"biceps", cue:"7 reps in the bottom-half range, 7 reps in the top-half range, then 7 reps full range — keep constant tension, no resting at the top or bottom.", video:{url:"https://www.youtube.com/results?search_query=ez+bar+curl+21s+technique",title:"EZ Bar Curl 21s — technique reference"}, sub:["EZ Bar Curl", "Dumbbell Curl 21s", "Cable Curl 21s"], caution:null},
+"Cable Crunch": {muscle:"core", cue:"Kneel facing the cable, flex your spine to bring your elbows toward your knees, avoid yanking with your arms.", video:{url:"https://www.youtube.com/results?search_query=cable+crunch+technique",title:"Cable Crunch — technique reference"}, sub:["Bodyweight Crunch", "V Sit-Up"], caution:"Loaded spinal-flexion work — same pattern as Crunch, just cable-resisted, so if anything a higher-IAP version. Stop if you feel any pulling, straining or discomfort at the repair site."},
+"Wide Grip Lat Pulldown": {muscle:"back", cue:"Wide overhand grip just outside shoulder width, pull your elbows down and back, lead with your chest.", video:{url:"https://www.youtube.com/results?search_query=wide+grip+lat+pulldown+technique",title:"Wide Grip Lat Pulldown — technique reference"}, sub:["Pull-Up", "Reverse Grip Lat Pulldown"], caution:null},
 "Barbell Hip Thrust or Romanian Deadlift": {muscle:"glutes", cue:"Pick whichever better suits today's priority — Barbell Hip Thrust for more glute emphasis, Romanian Deadlift for more hamstring emphasis. Same sets/reps/RPE either way.", video:{url:"https://www.youtube.com/results?search_query=barbell+hip+thrust+vs+romanian+deadlift",title:"Hip Thrust vs. Romanian Deadlift — technique reference"}, sub:"Glute Bridge (if substituting the Hip Thrust option) or Lying Leg Curl / Glute Ham Raise (if substituting the RDL option)", caution:"Both options load the hips/lower back under real bracing demand — Hip Thrust loads a bar directly across your hips, the RDL loads a hip-hinge. Pick whichever feels better today, and check with your surgeon/physio if you're ever unsure."},
 
 /* --- Added for Jeff Nippard — Push/Pull/Legs Hypertrophy (Intermediate-Advanced) programme ---
@@ -374,25 +393,25 @@ const EX = {
    movements get their own entry below. Near-duplicate names the extraction doc flagged between
    blocks ("Cable Pull Through"/"Cable Rope Pullthrough", "Hammer Curl"/"Dumbbell Hammer Curl")
    are normalized to one canonical entry/display name throughout ("Cable Pull-Through", "Hammer Curl"). */
-"Dumbbell Isolateral Skull Crusher": {muscle:"triceps", cue:"Use 1 dumbbell in each hand, keep your elbows in a fixed position in line with the top of your head, press the dumbbells over your head (not toward your face).", video:{url:"https://www.youtube.com/results?search_query=dumbbell+isolateral+skull+crusher+technique",title:"Dumbbell Isolateral Skull Crusher — technique reference"}, sub:"EZ Bar Skull Crusher or Single-Arm Rope Tricep Extension", caution:null},
+"Dumbbell Isolateral Skull Crusher": {muscle:"triceps", cue:"Use 1 dumbbell in each hand, keep your elbows in a fixed position in line with the top of your head, press the dumbbells over your head (not toward your face).", video:{url:"https://www.youtube.com/results?search_query=dumbbell+isolateral+skull+crusher+technique",title:"Dumbbell Isolateral Skull Crusher — technique reference"}, sub:["EZ Bar Skull Crusher", "Single-Arm Rope Tricep Extension"], caution:null},
 "1-Arm Lat Pull-In": {muscle:"back", cue:"Light weight, drive your elbow down and in toward your side, laterally flex into the direction of pull.", video:{url:"https://www.youtube.com/results?search_query=1+arm+lat+pull+in+technique",title:"1-Arm Lat Pull-In — technique reference"}, sub:"Single-Arm Pulldown", caution:null},
-"Pull-Up": {muscle:"back", cue:"Pull your elbows down and in, minimize swinging, chest to the bar.", video:{url:"https://www.youtube.com/results?search_query=pull+up+technique",title:"Pull-Up — technique reference"}, sub:"Assisted Pull-Up or Lat Pulldown", caution:null},
-"Machine High Row": {muscle:"back", cue:"Focus on squeezing your lats, pull your elbows down and back.", video:{url:"https://www.youtube.com/results?search_query=machine+high+row+technique",title:"Machine High Row — technique reference"}, sub:"One-Arm Dumbbell Row, or a row off a pulldown machine leaning your torso back 45°", caution:null},
-"Reverse Grip EZ Bar Curl": {muscle:"biceps", cue:"Reversed (pronated) grip on an EZ bar, arch the bar \"out\" not \"up\", focus on squeezing your forearms.", video:{url:"https://www.youtube.com/results?search_query=reverse+grip+ez+bar+curl+technique",title:"Reverse Grip EZ Bar Curl — technique reference"}, sub:"Pronated Dumbbell or Cable Curl", caution:null},
+"Pull-Up": {muscle:"back", cue:"Pull your elbows down and in, minimize swinging, chest to the bar.", video:{url:"https://www.youtube.com/results?search_query=pull+up+technique",title:"Pull-Up — technique reference"}, sub:["Assisted Pull-Up", "Lat Pulldown"], caution:null},
+"Machine High Row": {muscle:"back", cue:"Focus on squeezing your lats, pull your elbows down and back.", video:{url:"https://www.youtube.com/results?search_query=machine+high+row+technique",title:"Machine High Row — technique reference"}, sub:["One-Arm Dumbbell Row", "a row off a pulldown machine leaning your torso back 45°"], caution:null},
+"Reverse Grip EZ Bar Curl": {muscle:"biceps", cue:"Reversed (pronated) grip on an EZ bar, arch the bar \"out\" not \"up\", focus on squeezing your forearms.", video:{url:"https://www.youtube.com/results?search_query=reverse+grip+ez+bar+curl+technique",title:"Reverse Grip EZ Bar Curl — technique reference"}, sub:["Pronated Dumbbell Curl", "Cable Curl"], caution:null},
 "Front Squat": {muscle:"quads", cue:"Sit down keeping your torso upright, 15° toe flare, drive your knees out laterally, elbows high to keep the bar racked on your shoulders.", video:{url:"https://www.youtube.com/results?search_query=front+squat+technique",title:"Front Squat — technique reference"}, sub:"Leg Press", caution:"Heavy bracing squat pattern — same demand as Back Squat. Check in with your surgeon/physio before loading this hard; the Leg Press substitute above is the lowest-bracing option."},
-"Cable Pull-Through": {muscle:"glutes", cue:"Focus on anteriorly tilting your pelvis during the eccentric, posteriorly during the concentric, squeeze your glutes to finish the movement.", video:{url:"https://www.youtube.com/results?search_query=cable+pull+through+technique",title:"Cable Pull-Through — technique reference"}, sub:"Kettlebell Swing or Dumbbell RDL", caution:null},
+"Cable Pull-Through": {muscle:"glutes", cue:"Focus on anteriorly tilting your pelvis during the eccentric, posteriorly during the concentric, squeeze your glutes to finish the movement.", video:{url:"https://www.youtube.com/results?search_query=cable+pull+through+technique",title:"Cable Pull-Through — technique reference"}, sub:["Kettlebell Swing", "Dumbbell RDL"], caution:null},
 "Cable Seated Elbows-Out Row": {muscle:"back", cue:"Focus on scapular retraction, pull with your elbows up and out rather than down and in.", video:{url:"https://www.youtube.com/results?search_query=cable+seated+elbows+out+row+technique",title:"Cable Seated Elbows-Out Row — technique reference"}, sub:"Chest-Supported T-Bar Row (wide grip)", caution:null},
 "Snatch Grip Barbell Shrug": {muscle:"back", cue:"Use a 1.5x shoulder-width grip, control the weight down, shrug straight up toward your ears.", video:{url:"https://www.youtube.com/results?search_query=snatch+grip+barbell+shrug+technique",title:"Snatch Grip Barbell Shrug — technique reference"}, sub:"Dumbbell Shrug", caution:null},
-"Round-Back Dumbbell 45° Hyperextension": {muscle:"hamstrings", cue:"Round your upper back, drive your hips into the pad like a hip thrust rather than extending through your spine.", video:{url:"https://www.youtube.com/results?search_query=round+back+45+hyperextension+technique",title:"Round-Back 45° Hyperextension — technique reference"}, sub:"Barbell Hip Thrust or Straight-Back 45° Hyperextension", caution:null},
-"Smith Machine Reverse Lunge": {muscle:"quads", cue:"Sit back into the lunge, start with your weaker leg, keep your torso upright.", video:{url:"https://www.youtube.com/results?search_query=smith+machine+reverse+lunge+technique",title:"Smith Machine Reverse Lunge — technique reference"}, sub:"Dumbbell Walking Lunge or Bulgarian Split Squat", caution:null},
+"Round-Back Dumbbell 45° Hyperextension": {muscle:"hamstrings", cue:"Round your upper back, drive your hips into the pad like a hip thrust rather than extending through your spine.", video:{url:"https://www.youtube.com/results?search_query=round+back+45+hyperextension+technique",title:"Round-Back 45° Hyperextension — technique reference"}, sub:["Barbell Hip Thrust", "Straight-Back 45° Hyperextension"], caution:null},
+"Smith Machine Reverse Lunge": {muscle:"quads", cue:"Sit back into the lunge, start with your weaker leg, keep your torso upright.", video:{url:"https://www.youtube.com/results?search_query=smith+machine+reverse+lunge+technique",title:"Smith Machine Reverse Lunge — technique reference"}, sub:["Dumbbell Walking Lunge", "Bulgarian Split Squat"], caution:null},
 "Lateral Band Walk": {muscle:"glutes", cue:"Stay low in a mini-squat, drive your knees out against the band resistance with every step.", video:{url:"https://www.youtube.com/results?search_query=lateral+band+walk+technique",title:"Lateral Band Walk — technique reference"}, sub:"Machine Seated Hip Abduction", caution:null},
 "Close-Grip Smith Machine Press": {muscle:"triceps", cue:"Shoulder-width grip, elbows down at your sides, press straight up along the fixed bar path.", video:{url:"https://www.youtube.com/results?search_query=close+grip+smith+machine+press+technique",title:"Close-Grip Smith Machine Press — technique reference"}, sub:"Close-Grip Dumbbell Bench Press", caution:"Same supine bracing demand as Close-Grip Bench Press — a supported bench press is lower-risk than a standing press, but still worth being mindful of."},
-"Barbell Floor Skull Crusher": {muscle:"triceps", cue:"Lie on the floor, protract your shoulders, keep your elbows in line with your head, only move at the elbow joint.", video:{url:"https://www.youtube.com/results?search_query=barbell+floor+skull+crusher+technique",title:"Barbell Floor Skull Crusher — technique reference"}, sub:"EZ Bar Skull Crusher, Floor Press, Pin Press or JM Press", caution:null},
+"Barbell Floor Skull Crusher": {muscle:"triceps", cue:"Lie on the floor, protract your shoulders, keep your elbows in line with your head, only move at the elbow joint.", video:{url:"https://www.youtube.com/results?search_query=barbell+floor+skull+crusher+technique",title:"Barbell Floor Skull Crusher — technique reference"}, sub:["EZ Bar Skull Crusher", "Floor Press", "Pin Press", "JM Press"], caution:null},
 "Low-to-High Reverse Flye": {muscle:"shoulders", cue:"A cross between a shrug, a row, and a reverse cable fly — scapular retraction and upward rotation, abduction of the humerus.", video:{url:"https://www.youtube.com/results?search_query=low+to+high+reverse+fly+technique",title:"Low-to-High Reverse Flye — technique reference"}, sub:"Low-to-High Face Pull", caution:null},
-"Spider Curl": {muscle:"biceps", cue:"Brace your chest against an incline bench, curl with your elbows slightly in front of you, squeeze at the top.", video:{url:"https://www.youtube.com/results?search_query=spider+curl+technique",title:"Spider Curl — technique reference"}, sub:"Dumbbell or EZ Bar Preacher Curl", caution:null},
+"Spider Curl": {muscle:"biceps", cue:"Brace your chest against an incline bench, curl with your elbows slightly in front of you, squeeze at the top.", video:{url:"https://www.youtube.com/results?search_query=spider+curl+technique",title:"Spider Curl — technique reference"}, sub:["Dumbbell Preacher Curl", "EZ Bar Preacher Curl"], caution:null},
 "Slow Eccentric Goblet Squat": {muscle:"quads", cue:"Hold a dumbbell at your chest, sit down with your knees out and torso upright, take a full 3-second lowering phase.", video:{url:"https://www.youtube.com/results?search_query=slow+eccentric+goblet+squat+technique",title:"Slow Eccentric Goblet Squat — technique reference"}, sub:"Slow-Eccentric Bodyweight Squat (no added load)", caution:"Loaded squat pattern in the Goblet Squat family — same bracing demand as Goblet Squat. The bodyweight substitute above removes the external load entirely."},
 "Machine Lateral Raise": {muscle:"shoulders", cue:"Focus on squeezing your lateral delt to move the weight, control the eccentric.", video:{url:"https://www.youtube.com/results?search_query=machine+lateral+raise+technique",title:"Machine Lateral Raise — technique reference"}, sub:"Dumbbell Seated Lateral Raise", caution:null},
-"Seal Row": {muscle:"back", cue:"Lie prone on a raised bench, dumbbells or a barbell hanging straight down, row without any leg drive or torso movement.", video:{url:"https://www.youtube.com/results?search_query=seal+row+technique",title:"Seal Row — technique reference"}, sub:"Pendlay Row or Bent Over Barbell Row", caution:null},
+"Seal Row": {muscle:"back", cue:"Lie prone on a raised bench, dumbbells or a barbell hanging straight down, row without any leg drive or torso movement.", video:{url:"https://www.youtube.com/results?search_query=seal+row+technique",title:"Seal Row — technique reference"}, sub:["Pendlay Row", "Bent Over Barbell Row"], caution:null},
 "Dumbbell Pronated Curl": {muscle:"biceps", cue:"Reverse (overhand) grip, arch the dumbbell \"out\" not \"up\", focus on squeezing your forearms.", video:{url:"https://www.youtube.com/results?search_query=dumbbell+pronated+curl+technique",title:"Dumbbell Pronated Curl — technique reference"}, sub:"EZ Bar Reverse Curl", caution:null},
 
 /* --- Added for Jeff Nippard — Push/Pull/Legs Hypertrophy (Intermediate-Advanced) programme, pass 2
@@ -411,11 +430,11 @@ const EX = {
 "Enhanced-Eccentric Lying Leg Curl": {muscle:"hamstrings", cue:"Have a training partner push down on the pad during the eccentric for extra time under tension, then curl back up normally.", video:{url:"https://www.youtube.com/results?search_query=enhanced+eccentric+lying+leg+curl+technique",title:"Enhanced-Eccentric Lying Leg Curl — technique reference"}, sub:"3-second negative leg curl (no partner needed)", caution:null},
 "Triceps V-Bar Pressdown": {muscle:"triceps", cue:"V-bar attachment, elbows pinned to your sides, focus on squeezing your triceps to move the weight.", video:{url:"https://www.youtube.com/results?search_query=triceps+v+bar+pressdown+technique",title:"Triceps V-Bar Pressdown — technique reference"}, sub:"Cable triceps pressdown (no attachment)", caution:null},
 "Rope Overhead Triceps Extension": {muscle:"triceps", cue:"Rope attachment behind your head, focus on stretching your triceps at the bottom of the movement before extending back up.", video:{url:"https://www.youtube.com/results?search_query=rope+overhead+triceps+extension+technique",title:"Rope Overhead Triceps Extension — technique reference"}, sub:"Dumbbell overhead triceps extension", caution:null},
-"Kneeling Straight-Arm Cable Pull-Over": {muscle:"back", cue:"Kneel facing the cable, lean your torso at a 45° angle, keep your arm straight and focus on pulling the weight straight down (not 'in').", video:{url:"https://www.youtube.com/results?search_query=kneeling+straight+arm+cable+pullover+technique",title:"Kneeling Straight-Arm Cable Pull-Over — technique reference"}, sub:"Standing cable pull-over, or dumbbell pull-over", caution:null},
+"Kneeling Straight-Arm Cable Pull-Over": {muscle:"back", cue:"Kneel facing the cable, lean your torso at a 45° angle, keep your arm straight and focus on pulling the weight straight down (not 'in').", video:{url:"https://www.youtube.com/results?search_query=kneeling+straight+arm+cable+pullover+technique",title:"Kneeling Straight-Arm Cable Pull-Over — technique reference"}, sub:["Standing cable pull-over", "dumbbell pull-over"], caution:null},
 "Dumbbell One-Arm Row": {muscle:"back", cue:"Brace with your non-working arm, pull your working arm back at your side, squeeze your shoulder blade at the top.", video:{url:"https://www.youtube.com/results?search_query=dumbbell+one+arm+row+technique",title:"Dumbbell One-Arm Row — technique reference"}, sub:"Single-arm cable row", caution:null},
-"Chest-Supported T-Bar Row w/ Band": {muscle:"back", cue:"Chest braced against the pad, band adds extra tension through the top of the row, focus on scapular retraction.", video:{url:"https://www.youtube.com/results?search_query=chest+supported+t+bar+row+band+technique",title:"Chest-Supported T-Bar Row w/ Band — technique reference"}, sub:"Cable seated row w/ band, or enhanced-eccentric chest-supported T-bar row", caution:null},
-"Dumbbell Preacher Curl": {muscle:"biceps", cue:"Upper arm braced flat against the preacher pad, focus on squeezing your biceps to move the weight, control the eccentric.", video:{url:"https://www.youtube.com/results?search_query=dumbbell+preacher+curl+technique",title:"Dumbbell Preacher Curl — technique reference"}, sub:"Machine preacher curl, or dumbbell alternating supinated curl", caution:null},
-"Swiss Ball Single-Leg Leg Curl": {muscle:"hamstrings", cue:"Start with your weaker leg, prevent your hips from touching the ground, curl the ball in by flexing your hamstring.", video:{url:"https://www.youtube.com/results?search_query=swiss+ball+single+leg+curl+technique",title:"Swiss Ball Single-Leg Leg Curl — technique reference"}, sub:"Sliding leg curl, seated leg curl, or single-leg lying leg curl", caution:null},
+"Chest-Supported T-Bar Row w/ Band": {muscle:"back", cue:"Chest braced against the pad, band adds extra tension through the top of the row, focus on scapular retraction.", video:{url:"https://www.youtube.com/results?search_query=chest+supported+t+bar+row+band+technique",title:"Chest-Supported T-Bar Row w/ Band — technique reference"}, sub:["Cable seated row w/ band", "enhanced-eccentric chest-supported T-bar row"], caution:null},
+"Dumbbell Preacher Curl": {muscle:"biceps", cue:"Upper arm braced flat against the preacher pad, focus on squeezing your biceps to move the weight, control the eccentric.", video:{url:"https://www.youtube.com/results?search_query=dumbbell+preacher+curl+technique",title:"Dumbbell Preacher Curl — technique reference"}, sub:["Machine preacher curl", "dumbbell alternating supinated curl"], caution:null},
+"Swiss Ball Single-Leg Leg Curl": {muscle:"hamstrings", cue:"Start with your weaker leg, prevent your hips from touching the ground, curl the ball in by flexing your hamstring.", video:{url:"https://www.youtube.com/results?search_query=swiss+ball+single+leg+curl+technique",title:"Swiss Ball Single-Leg Leg Curl — technique reference"}, sub:["Sliding leg curl", "seated leg curl", "single-leg lying leg curl"], caution:null},
 "Cable Triceps Kickback": {muscle:"triceps", cue:"Stand upright, keep your elbow pinned behind your torso, extend your forearm back without moving your upper arm.", video:{url:"https://www.youtube.com/results?search_query=cable+triceps+kickback+technique",title:"Cable Triceps Kickback — technique reference"}, sub:"Dumbbell triceps kickback", caution:null},
 "Rope Upright Row": {muscle:"shoulders", cue:"Rope attachment, focus on squeezing your upper traps at the top and initiating the movement 'out' rather than straight up.", video:{url:"https://www.youtube.com/results?search_query=rope+upright+row+technique",title:"Rope Upright Row — technique reference"}, sub:"Low-to-high face pull", caution:null},
 "Tempo Standing Calf Raise": {muscle:"calves", cue:"2-second lowering phase. Press all the way up to your toes, stretch at the bottom, don't bounce.", video:{url:"https://www.youtube.com/results?search_query=tempo+standing+calf+raise+technique",title:"Tempo Standing Calf Raise — technique reference"}, sub:"Standing Calf Raise (without the tempo)", caution:null},
@@ -464,7 +483,10 @@ function buildRPBlocks(){
       let sets = baseSets;
       if(wk.setMode==='minus1') sets = Math.max(2, baseSets-1);
       else if(wk.setMode==='deload') sets = 2;
-      return d(name, sets, reps, wk.rpe, rest);
+      const row = d(name, sets, reps, wk.rpe, rest);
+      // RP's Leg Press is its own independent accessory, not a Deadlift stand-in — no Deadlift swap here
+      if(name==='Leg Press') row.subOverride = null;
+      return row;
     }));
     const label = wk.label || (weekNum<=6 ? `Block 1 · Week ${weekNum}` : `Block 2 · Week ${weekNum} (Overload Phase)`);
     return {label, weeks:[weekNum], builtInDeload:!!wk.deload, days};
@@ -1042,14 +1064,14 @@ rp: { id:"rp", label:"RP Hypertrophy (Hernia-Safe)", family:"rp", finite:true, t
 jsa3: { id:"jsa3", label:"JSA: Lose Fat 2 (Maja)", family:"jsa", finite:false, totalWeeks:null, daysPerWeek:3,
   dayLabels:["Push & Quad Focus","Pull, Hamstrings & Biceps","Full Body / Hypertrophy"],
   blocks:[ { label:"Ongoing weekly routine", weeks:[1], builtInDeload:false, days:[
-    [d("Barbell Bench Press",3,"10",8,"1.5"), d("Cable Standing Fly",3,"12",8,"1"), d("Leg Press",3,"10",8,"1"), d("Leg Extension",3,"12",8,"0.75"), d("Lever Shoulder Press",3,"10",8,"1.5"), d("DB Standing Lateral Raise",3,"12",8,"1"), d("Alternate Toe Tap Leg Lift",3,"14",6,"0.75")],
+    [d("Barbell Bench Press",3,"10",8,"1.5"), d("Cable Standing Fly",3,"12",8,"1"), Object.assign(d("Leg Press",3,"10",8,"1"),{subOverride:null}), d("Leg Extension",3,"12",8,"0.75"), d("Lever Shoulder Press",3,"10",8,"1.5"), d("DB Standing Lateral Raise",3,"12",8,"1"), d("Alternate Toe Tap Leg Lift",3,"14",6,"0.75")],
     [d("Cable Wide-grip Lat Pulldown",3,"12",8,"1"), d("Cable Low Seated Row",3,"10",8,"1.5"), d("Lying Leg Curl",3,"12",8,"1"), d("Barbell Bent Over Row",3,"10",8,"1"), d("Barbell Curl",3,"8-10",8,"1.5"), d("Cable Curl",3,"8-12",8,"1"), d("Single Dead Bug",3,"10",6,"0.75"), d("Barbell Standing Calf Raise",3,"10",8,"1")],
     [d("Goblet Squat",3,"10",8,"1"), d("Dumbbell Incline Press",3,"10",8,"1.5"), d("Dumbbell Chest Fly",3,"12",8,"0.75"), d("Dumbbell Split Squat",3,"8",8,"1"), d("Cable Kneeling Triceps Extension",3,"12",8,"0.75"), d("Bench Dip",3,"12",8,"0.75"), d("Plank",3,"30sec hold",7,"0.75")]
   ]} ]},
 jsa4: { id:"jsa4", label:"JSA: Lose Fat (Steve)", family:"jsa", finite:false, totalWeeks:null, daysPerWeek:4,
   dayLabels:["Day 1","Day 2","Day 3","Day 4"],
   blocks:[ { label:"Ongoing weekly routine", weeks:[1], builtInDeload:false, days:[
-    [d("Leg Press",3,"10-12",8,"1"), d("Lever Chest Press",3,"12",8,"1"), d("Cable Pulldown",3,"12",8,"1"), d("One Leg Extension",3,"10",8,"1"), d("Lever Shoulder Press",3,"10-12",8,"1"), d("Lever Seated Row",3,"12",8,"1"), d("Hip Abduction",6,"12",8,"1")],
+    [Object.assign(d("Leg Press",3,"10-12",8,"1"),{subOverride:null}), d("Lever Chest Press",3,"12",8,"1"), d("Cable Pulldown",3,"12",8,"1"), d("One Leg Extension",3,"10",8,"1"), d("Lever Shoulder Press",3,"10-12",8,"1"), d("Lever Seated Row",3,"12",8,"1"), d("Hip Abduction",6,"12",8,"1")],
     [d("Horizontal One Leg Press",3,"10",8,"1"), d("Lying Leg Curl",3,"10",8,"1"), d("Lever Pec Deck Fly",3,"10",8,"1"), d("DB One Arm Bent Over Row",3,"10",8,"1"), d("DB Floor Chest Press",3,"10",8,"1"), d("Cable Pushdown",3,"12",8,"1")],
     [d("Cable Close-grip Pulldown",3,"12",8,"1"), d("Dumbbell Step Up",3,"12",8,"1"), d("Dumbbell Seated Shoulder Press",3,"10-12",8,"1"), d("Lever Standing Calf Raise",3,"12",8,"1"), d("Dumbbell Incline Row",3,"10-12",8,"1"), d("Cable Biceps Curl",3,"8-12",8,"1")],
     [d("Lever Assisted Chin Up",3,"10",8,"1"), d("DB Floor Skullcrusher",3,"10",8,"0.75"), d("Dumbbell Lateral Raise",3,"12",8,"1"), d("Barbell Seated Overhead Press",3,"8-10",8,"1"), d("Seated Leg Curl",3,"10-12",8,"1"), d("Dumbbell Hip Thrust",3,"12",8,"1")]
@@ -1088,7 +1110,144 @@ function getSessionExercises(baseDayExercises, physioIndex){
   const due = PHYSIO_EXERCISES[physioIndex % PHYSIO_EXERCISES.length];
   const alreadyCovered = baseDayExercises.some(ex=> ex.name===due.name || (due.similarTo && due.similarTo.includes(ex.name)));
   if(alreadyCovered) return baseDayExercises.slice();
-  return baseDayExercises.concat([ d(due.name, due.sets, due.reps, due.rpe, due.rest) ]);
+  return baseDayExercises.concat([ Object.assign(d(due.name, due.sets, due.reps, due.rpe, due.rest), {isPhysio:true}) ]);
+}
+
+/* ============ GYM PROFILES / EQUIPMENT-AWARE SWAPS ============
+   Each gym lists which equipment it HAS (ids from GYM_EQUIPMENT). Every exercise's equipment needs are
+   inferred from its name via NEED_RULES (first match wins; no match = bodyweight/always available).
+   When a session is opened, any exercise that (a) has a user preference ("always use Y instead of X") or
+   (b) needs equipment today's gym lacks is auto-swapped to the first workable alternative, and is
+   labelled "auto-swapped" so it can be reverted with the normal 🔁 button. Revert is sticky for that session.
+   To add real gym data later: tick/untick equipment in Settings → Gyms. If a piece of kit isn't in
+   GYM_EQUIPMENT yet, add an entry here plus a rule in NEED_RULES (see claude/swap-and-1rm-plan.md roadmap). */
+const GYM_EQUIPMENT = [
+  {id:"barbell",label:"Barbells & plates"}, {id:"rack",label:"Squat / power rack"}, {id:"bench",label:"Flat bench"},
+  {id:"incline",label:"Adjustable / incline bench"}, {id:"dumbbells",label:"Dumbbells"}, {id:"ezbar",label:"EZ bar"},
+  {id:"hexbar",label:"Hex bar"}, {id:"smith",label:"Smith machine"}, {id:"cable",label:"Cable stack"},
+  {id:"latpull",label:"Lat pulldown"}, {id:"legpress",label:"Leg press"}, {id:"hack",label:"Hack squat machine"},
+  {id:"legext",label:"Leg extension machine"}, {id:"legcurl",label:"Leg curl machine"},
+  {id:"hipthrust",label:"Hip thrust machine"}, {id:"abduction",label:"Hip abduction machine"},
+  {id:"pecdeck",label:"Pec deck / rear-delt machine"}, {id:"chestpress",label:"Chest press machine"},
+  {id:"shoulderpress",label:"Shoulder press machine"}, {id:"rowmachine",label:"Row machine (T-bar / chest-supported / lever)"},
+  {id:"pullupbar",label:"Pull-up bar"}, {id:"dip",label:"Dip station"}, {id:"assist",label:"Assisted pull-up / dip machine"},
+  {id:"calf",label:"Calf raise machine"}, {id:"backext",label:"45° back extension / glute-ham bench"},
+  {id:"swissball",label:"Swiss ball"}, {id:"kettlebell",label:"Kettlebells"}, {id:"bands",label:"Resistance bands"}
+];
+function defaultGymEquipment(){ return GYM_EQUIPMENT.map(e=>e.id).filter(id=> id!=="hipthrust"); }
+
+// Ordered [regex on lowercased name, [equipment ids needed]]. First match wins. Order matters.
+const NEED_RULES = [
+  [/hip thrust machine/, ["hipthrust"]],
+  [/hex bar or smith/, []],
+  [/swiss ball/, ["swissball"]],
+  [/smith machine/, ["smith"]],
+  [/dumbbell leg curl/, ["dumbbells"]],
+  [/barbell hip thrust/, ["barbell","bench"]],
+  [/standing cable hip abduction/, ["cable"]],
+  [/lateral band walk|banded/, ["bands"]],
+  [/kettlebell/, ["kettlebell"]],
+  [/hack squat/, ["hack"]],
+  [/leg press/, ["legpress"]],
+  [/leg extension/, ["legext"]],
+  [/leg curl/, ["legcurl"]],
+  [/hip abduction/, ["abduction"]],
+  [/pec deck|lever pec/, ["pecdeck"]],
+  [/machine incline chest press|chest-supported machine press|lever chest press|machine chest press|hammer strength machine press/, ["chestpress"]],
+  [/lever shoulder press|machine shoulder press/, ["shoulderpress"]],
+  [/assisted dip|assisted pull-up|assisted chin|lever assisted/, ["assist"]],
+  [/pulldown|pull-in/, ["latpull"]],
+  [/t-bar|chest-supported neutral row|machine high row|lever seated row/, ["rowmachine"]],
+  [/humble row/, ["incline"]],
+  [/^(weighted )?dip$/, ["dip"]],
+  [/pull-up|chin-up/, ["pullupbar"]],
+  [/glute ham raise|hyperextension/, ["backext"]],
+  [/bench dip/, ["bench"]],
+  [/ez bar/, ["ezbar"]],
+  [/dumbbell|\bdb\b|goblet|bulgarian|arnold/, ["dumbbells"]],
+  [/bench press/, ["barbell","bench"]],
+  [/back squat|front squat/, ["barbell","rack"]],
+  [/barbell|deadlift|military press|overhead press|push press|pendlay|snatch grip/, ["barbell"]],
+  [/calf raise|calf machine/, ["calf"]],
+  [/cable|pressdown|pushdown|face pull|rope|v-bar/, ["cable"]]
+];
+function needsFor(name){
+  const n = String(name||'').toLowerCase();
+  for(const [re, tags] of NEED_RULES){ if(re.test(n)) return tags; }
+  return [];
+}
+// Extra equipment-driven alternatives, tried BEFORE the exercise's own swap list.
+const GYM_ALTS = {
+  "Hack Squat": ["Leg Press","Goblet Squat"],
+  "Tempo Hack Squat": ["Leg Press","Slow Eccentric Goblet Squat"],
+  "Leg Press": ["Hack Squat","Goblet Squat"],
+  "Barbell Hip Thrust": ["Hip Thrust Machine","Glute Bridge","Cable Pull-Through"],
+  "Romanian Deadlift": ["Dumbbell RDL","Lying Leg Curl","Cable Pull-Through"],
+  "Lying Leg Curl": ["Seated Leg Curl","Swiss Ball Leg Curl","Dumbbell Leg Curl"],
+  "Seated Leg Curl": ["Lying Leg Curl","Swiss Ball Leg Curl"],
+  "Pec Deck": ["Cable Flye","Dumbbell Flye"],
+  "Lat Pulldown": ["Pull-Up","Cable Pulldown"]
+};
+
+function todayStr(){ const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+// Which gym applies right now: a same-day override from the Train tab wins, else the weekday schedule. null = no gym.
+function currentGymId(){
+  if(state.gymToday && state.gymToday.date===todayStr()) return state.gymToday.id || null;
+  const id = (state.gymByWeekday||[])[new Date().getDay()];
+  return (id && state.gyms && state.gyms[id]) ? id : null;
+}
+function gymEquipSet(gymId){
+  if(!gymId || !state.gyms || !state.gyms[gymId]) return null;
+  return new Set(state.gyms[gymId].equipment||[]);
+}
+function gymSignature(gymId){
+  const g = gymId && state.gyms ? state.gyms[gymId] : null;
+  return `${gymId||'-'}|${g?(g.equipment||[]).slice().sort().join(','):''}|${JSON.stringify(state.preferred||{})}`;
+}
+// Returns {swap, reason} for an exercise row, or null if it should stay as prescribed.
+function resolveGymSwap(ex, gymId){
+  const base = ex.baseName || ex.name;
+  const equip = gymEquipSet(gymId);
+  const avail = n => !equip || needsFor(n).every(t=> equip.has(t));
+  const prefs = state.preferred || {};
+  const avoided = new Set(Object.keys(prefs));
+  const withSuffix = alt => (ex.name!==base && ex.name.startsWith(base)) ? alt + ex.name.slice(base.length) : alt;
+  const pref = prefs[base] || prefs[ex.name];
+  if(pref){
+    for(const alt of pref){ if(alt!==base && avail(alt)) return {swap:withSuffix(alt), reason:'your preference'}; }
+  } else if(avail(base)){
+    return null;
+  }
+  const info = EX[base] || {};
+  const cands = (GYM_ALTS[base]||[]).concat(subOptions(ex, info));
+  const gymName = (gymId && state.gyms[gymId]) ? state.gyms[gymId].name : null;
+  for(const c of cands){
+    if(c===base || avoided.has(c)) continue;
+    if(avail(c)) return {swap:withSuffix(c), reason: pref ? 'your preference (no preferred option available here)' : `not available at ${gymName||'this gym'}`};
+  }
+  return null;
+}
+// Applies auto-swaps to a session draft (mutates it). Returns true if anything changed.
+function applyGymSwaps(draftDay, dayExercises){
+  const gymId = currentGymId();
+  const sig = gymSignature(gymId);
+  let changed = false;
+  dayExercises.forEach((ex, exi)=>{
+    if(ex.isPhysio) return;
+    const dEx = draftDay[exi] || (draftDay[exi] = {});
+    if(dEx.gymSig === sig) return;                       // already evaluated under this gym/config (incl. a reverted one)
+    const manual = dEx.swap && !dEx.auto;                // user picked this swap themselves — never override
+    dEx.gymSig = sig; changed = true;
+    if(manual) return;
+    const r = resolveGymSwap(ex, gymId);
+    if(r){ dEx.swap = r.swap; dEx.auto = true; dEx.autoReason = r.reason; }
+    else if(dEx.auto){ dEx.swap = null; dEx.auto = false; dEx.autoReason = null; }
+  });
+  return changed;
+}
+function setGym(id){
+  state.gymToday = {date: todayStr(), id: id||null};
+  saveState(); renderAll();
 }
 
 /* ============ STATE ============ */
@@ -1096,6 +1255,17 @@ const LS_STATE = "actraining_state_v2";
 const LS_HIST = "actraining_history_v2";
 const DEFAULT_STATE = {
   name:"", sheetsUrl:"", activeProgram:"fullbody", cautionOn:true, cautionBannerDismissed:false, jsaHistorySeeded:false, physioRotationIndex:0, stateSyncedAt:0,
+  // Gym profiles (equipment-aware swaps). Until real equipment lists are entered, every gym starts with
+  // everything ticked (except hip thrust machine), so nothing is swapped for equipment reasons.
+  gyms: { A:{name:"Gym A", equipment:defaultGymEquipment()}, B:{name:"Gym B", equipment:defaultGymEquipment()} },
+  gymByWeekday: [null,null,null,null,null,null,null],   // index = JS getDay(): 0 Sun … 6 Sat; value 'A' | 'B' | null
+  gymToday: null,                                         // {date:'YYYY-MM-DD', id:'A'|'B'|null} one-day override from the Train tab
+  // "Always use Y instead of X" preferences (applied whenever Y's equipment is available). First available wins.
+  preferred: {
+    "Barbell Hip Thrust": ["Hip Thrust Machine","Glute Bridge","Cable Pull-Through"],
+    "Pause Barbell Hip Thrust": ["Hip Thrust Machine","Glute Bridge"],
+    "Assisted Dip": ["Dip"]
+  },
   programs:{
     fullbody:{seqIndex:0, deload:false, draft:{}},
     upperlower:{seqIndex:0, deload:false, draft:{}},
@@ -1295,11 +1465,17 @@ function renderTrain(){
   if(!st.draft) st.draft = {};
   if(!st.draft[draftKey]) st.draft[draftKey] = {};
 
+  if(applyGymSwaps(st.draft[draftKey], dayExercises)) saveState();
+
   let anyCaution = dayExercises.some(ex=> EX[ex.baseName||ex.name] && EX[ex.baseName||ex.name].caution);
   document.getElementById('cautionBanner').style.display = (anyCaution && state.cautionOn && !state.cautionBannerDismissed) ? 'flex' : 'none';
 
   const weekLabel = prog.finite ? `Week ${entry.week} of ${prog.totalWeeks}` : `Ongoing weekly routine`;
-  let html = `<div class="card">
+  const gymId = currentGymId();
+  let html = `<div class="gymbar"><span class="small">Gym today:</span>
+    ${['A','B'].map(id=>`<button class="gymchip ${gymId===id?'on':''}" onclick="setGym('${id}')">${escapeHtml(state.gyms[id].name)}</button>`).join('')}
+    <button class="gymchip ${gymId?'':'on'}" onclick="setGym(null)">Not set</button></div>`;
+  html += `<div class="card">
     <div class="sess-head">
       <div class="pos">${prog.label} — ${weekLabel} · ${dayLabel}</div>
       <div class="lbl">${block.label}</div>
@@ -1318,11 +1494,11 @@ function renderTrain(){
     html += `<div class="exercise" data-exi="${exi}">
       <div class="ex-head">
         <div>
-          <div class="ex-name">${escapeHtml(displayName)}${cautionBadge}${swappedTo?`<span class="swapped">swapped from ${escapeHtml(ex.name)}</span>`:''}</div>
-          <div class="ex-meta">${ex.sets}×${ex.reps} · ${rpeOrIntensityLabel((entry.deload && !prog.bakedRpe)? Math.max(5,ex.rpe-1): ex.rpe)} · rest ${ex.rest} min</div>
+          <div class="ex-name">${escapeHtml(displayName)}${cautionBadge}${swappedTo?`<span class="swapped">${draft.auto?'auto-swapped':'swapped'} from ${escapeHtml(ex.name)}${draft.auto&&draft.autoReason?` · ${escapeHtml(draft.autoReason)}`:''}</span>`:''}</div>
+          <div class="ex-meta">${ex.sets}×${ex.reps} · ${rpeOrIntensityLabel((entry.deload && !prog.bakedRpe)? Math.max(5,ex.rpe-1): ex.rpe)}${targetWeightText(swappedTo ? swappedTo : (ex.baseName||ex.name), ex.rpe)} · rest ${ex.rest} min</div>
         </div>
         <div class="ex-actions">
-          ${info.sub? `<button class="iconbtn" title="Swap exercise" onclick="openSwap(${exi})">🔁</button>`:''}
+          ${subOptions(ex, info).length? `<button class="iconbtn" title="Swap exercise" onclick="openSwap(${exi})">🔁</button>`:''}
           <button class="iconbtn" title="Info" onclick="openInfo(${exi})">ⓘ</button>
         </div>
       </div>
@@ -1360,6 +1536,29 @@ function renderTrain(){
   </div></div>`;
 
   document.getElementById('trainContent').innerHTML = html;
+}
+
+// Most recent logged session's best estimated 1RM (Epley) for a lift, or null if never logged.
+// history is newest-first. Matches by displayed name or by underlying baseName.
+function latestEst1RM(liftName){
+  for(const h of history){
+    for(const ex of (h.exercises||[])){
+      if(ex.name===liftName || ex.baseName===liftName){
+        let best=0;
+        (ex.sets||[]).forEach(s=>{ const w=parseFloat(s.weight), r=parseFloat(s.reps); if(w>0 && r>0){ const e=w*(1+r/30); if(e>best) best=e; } });
+        if(best>0) return best;
+      }
+    }
+  }
+  return null;
+}
+// "≈ 140kg" target for a %1RM-prescribed row, rounded to the nearest 2.5kg; '' if no data yet.
+function targetWeightText(liftName, pctStr){
+  if(typeof pctStr!=='string' || pctStr.indexOf('%')===-1) return '';
+  const est = latestEst1RM(liftName);
+  const pct = parseFloat(pctStr);
+  if(!est || !(pct>0)) return '';
+  return ` (≈${Math.round(est*pct/100/2.5)*2.5}kg)`;
 }
 
 function plateBreakdown(totalKg){
@@ -1465,10 +1664,18 @@ function openInfo(exi){
     <div class="ex-meta">${ex.sets}×${ex.reps} · ${rpeOrIntensityLabel(ex.rpe)} · rest ${ex.rest} min</div>
     <ul class="cuelist"><li>${escapeHtml(info.cue||'')}</li></ul>`;
   if(info.video){ html += `<a class="videolink" target="_blank" href="${info.video.url}">▶️ ${escapeHtml(info.video.title)}</a>`; }
-  if(info.sub){ html += `<div class="subbox"><b>Substitution available:</b> ${escapeHtml(info.sub)}<br><span class="small">Keep the same sets/reps/rest if you swap.</span></div>`; }
+  const infoOpts = subOptions(ex, info);
+  if(infoOpts.length){ html += `<div class="subbox"><b>Substitution${infoOpts.length>1?'s':''} available:</b> ${escapeHtml(infoOpts.join(' · '))}<br><span class="small">Keep the same sets/reps/rest if you swap.</span></div>`; }
   if(info.caution && state.cautionOn){ html += `<div class="cautionbox"><b>⚠️ Caution flag:</b> ${escapeHtml(info.caution)}</div>`; }
   document.getElementById('modalBody').innerHTML = html;
   document.getElementById('modalOverlay').classList.add('show');
+}
+// All swap options for an exercise row. `sub` in EX may be a single string or an array of
+// alternatives; a row can override it with `subOverride` (null = no swap offered here).
+function subOptions(ex, info){
+  const raw = (ex && ex.subOverride !== undefined) ? ex.subOverride : (info && info.sub);
+  if(!raw) return [];
+  return Array.isArray(raw) ? raw : [raw];
 }
 function openSwap(exi){
   const progId = state.activeProgram; const prog = PROGRAMS[progId];
@@ -1476,18 +1683,32 @@ function openSwap(exi){
   const dayExercises = getSessionExercises(prog.blocks[entry.blockIndex].days[dayIdx], state.physioRotationIndex);
   const ex = dayExercises[exi];
   const info = EX[ex.baseName||ex.name] || {};
+  const opts = subOptions(ex, info);
   let html = `<button class="close" onclick="closeModal()">✕</button><h3>Swap ${escapeHtml(ex.name)}</h3>
-    <p class="small">Substitute from the programme's swap list. Sets/reps/rest stay the same.</p>
-    <div class="subbox" style="cursor:pointer" onclick="doSwap(${exi}, '${escapeHtml(info.sub||'').replace(/'/g,"\\'")}')">${escapeHtml(info.sub||'')}</div>
-    <div style="margin-top:12px"><button class="secondary" style="width:100%" onclick="doSwap(${exi}, null)">Revert to original exercise</button></div>`;
+    <p class="small">${opts.length>1?'Pick one substitute.':'Substitute from the programme\'s swap list.'} Sets/reps/rest stay the same.</p>`;
+  opts.forEach((o,i)=>{
+    html += `<div class="subbox" style="cursor:pointer" onclick="doSwapIdx(${exi}, ${i})">${escapeHtml(o)}</div>`;
+  });
+  html += `<div style="margin-top:12px"><button class="secondary" style="width:100%" onclick="doSwap(${exi}, null)">Revert to original exercise</button></div>`;
   document.getElementById('modalBody').innerHTML = html;
   document.getElementById('modalOverlay').classList.add('show');
+}
+function doSwapIdx(exi, optIdx){
+  const progId = state.activeProgram; const prog = PROGRAMS[progId];
+  const {entry, dayIdx} = getPos(progId);
+  const dayExercises = getSessionExercises(prog.blocks[entry.blockIndex].days[dayIdx], state.physioRotationIndex);
+  const ex = dayExercises[exi];
+  const opts = subOptions(ex, EX[ex.baseName||ex.name] || {});
+  if(opts[optIdx]!=null) doSwap(exi, opts[optIdx]);
 }
 function doSwap(exi, subText){
   const {progId, draftKey} = currentDraftKey();
   const st = state.programs[progId];
   if(!st.draft[draftKey][exi]) st.draft[draftKey][exi]={};
-  st.draft[draftKey][exi].swap = subText || null;
+  const dEx = st.draft[draftKey][exi];
+  dEx.swap = subText || null;
+  dEx.auto = false; dEx.autoReason = null;            // any user action makes this a manual choice
+  dEx.gymSig = gymSignature(currentGymId());          // so an equipment auto-swap doesn't immediately re-apply after a revert
   saveState();
   closeModal();
   renderTrain();
@@ -1700,6 +1921,7 @@ function renderHistory(){
 function renderSettings(){
   document.getElementById('setName').value = state.name||'';
   document.getElementById('setSheetsUrl').value = state.sheetsUrl||'';
+  renderGymSettings();
 
   const syncedLabel = state.stateSyncedAt ? `Last synced: ${new Date(state.stateSyncedAt).toLocaleString()}` : 'Never synced yet';
   const nameHint = (state.sheetsUrl && !state.name) ? ' — set your name above too, programme-position sync needs it to find your row in Sheets.' : '';
@@ -1721,6 +1943,52 @@ function renderSettings(){
   document.getElementById('progOverview').innerHTML = `<div class="overview-grid">${seq.map((e,i)=>
     `<div class="cell ${i===weekPointer?'cur':(e.deload?'deload':'')}">Wk ${e.week}</div>`
   ).join('')}</div>`;
+}
+/* ---- Settings: gyms, weekday schedule, preferences ---- */
+function renderGymSettings(){
+  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const order = [1,2,3,4,5,6,0];
+  let html = '';
+  ['A','B'].forEach(id=>{
+    const g = state.gyms[id];
+    html += `<details style="margin-bottom:10px"><summary><b>${escapeHtml(g.name)}</b> <span class="small">(${(g.equipment||[]).length}/${GYM_EQUIPMENT.length} items)</span></summary>
+      <div class="field" style="margin-top:8px"><label>Gym name</label><input type="text" value="${escapeHtml(g.name)}" onchange="setGymName('${id}', this.value)"></div>
+      <div class="eqgrid">${GYM_EQUIPMENT.map(e=>`<label><input type="checkbox" ${(g.equipment||[]).includes(e.id)?'checked':''} onchange="toggleGymEquip('${id}','${e.id}')"> ${escapeHtml(e.label)}</label>`).join('')}</div>
+    </details>`;
+  });
+  html += `<h4 style="margin:14px 0 6px">Usual gym by weekday</h4>` + order.map(di=>
+    `<div class="field" style="margin-bottom:8px"><label>${days[di]}</label><select class="progselect" style="margin-bottom:0" onchange="setWeekdayGym(${di}, this.value)">
+      <option value="" ${!state.gymByWeekday[di]?'selected':''}>Not set</option>
+      ${['A','B'].map(id=>`<option value="${id}" ${state.gymByWeekday[di]===id?'selected':''}>${escapeHtml(state.gyms[id].name)}</option>`).join('')}
+    </select></div>`).join('');
+  document.getElementById('gymSettings').innerHTML = html;
+
+  const prefs = state.preferred || {};
+  const keys = Object.keys(prefs);
+  let ph = keys.length ? keys.map(k=>`<div class="rulerow"><span>${escapeHtml(k)} → <b>${escapeHtml(prefs[k].join(' › '))}</b></span><button class="iconbtn" title="Remove" onclick="removePreference('${escapeHtml(k).replace(/'/g,"\\'")}')">✕</button></div>`).join('') : `<p class="small">No preferences set.</p>`;
+  const names = Object.keys(EX).sort();
+  ph += `<div class="field" style="margin-top:12px"><label>Instead of</label><select class="progselect" id="prefFrom" style="margin-bottom:0">${names.map(n=>`<option>${escapeHtml(n)}</option>`).join('')}</select></div>
+    <div class="field"><label>Use this instead</label><input type="text" id="prefTo" list="prefToList" placeholder="e.g. Hip Thrust Machine"><datalist id="prefToList">${names.map(n=>`<option value="${escapeHtml(n)}">`).join('')}</datalist></div>
+    <button class="secondary" onclick="addPreference()">Add preference</button>`;
+  document.getElementById('prefSettings').innerHTML = ph;
+}
+function setGymName(id, v){ v=(v||'').trim(); if(!v) return; state.gyms[id].name = v; saveState(); renderAll(); }
+function toggleGymEquip(id, eq){
+  const arr = state.gyms[id].equipment || (state.gyms[id].equipment=[]);
+  const i = arr.indexOf(eq);
+  if(i>=0) arr.splice(i,1); else arr.push(eq);
+  saveState(); renderTrain(); renderGymSettings();
+}
+function setWeekdayGym(di, v){ state.gymByWeekday[di] = v || null; saveState(); renderTrain(); }
+function removePreference(k){ delete state.preferred[k]; saveState(); renderTrain(); renderGymSettings(); }
+function addPreference(){
+  const from = document.getElementById('prefFrom').value;
+  const to = (document.getElementById('prefTo').value||'').trim();
+  if(!from || !to){ showToast('Pick an exercise and a replacement.'); return; }
+  if(to===from){ showToast('Replacement must be different.'); return; }
+  const cur = state.preferred[from] || [];
+  state.preferred[from] = [to].concat(cur.filter(x=>x!==to));
+  saveState(); renderTrain(); renderGymSettings();
 }
 function saveSettings(){
   state.name = document.getElementById('setName').value;
