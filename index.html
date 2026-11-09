@@ -2560,25 +2560,41 @@ function openGarminPreview(text){
     h += `<p class="small">Found <b>${runs.length} run${runs.length===1?'':'s'}</b> and <b>${swims.length} swim${swims.length===1?'':'s'}</b> to add${dup?`, ${dup} already in the app`:''}${res.skipped?`, ${res.skipped} other activit${res.skipped===1?'y':'ies'} skipped (physio, gym and so on)`:''}${res.bad?`, ${res.bad} unreadable row${res.bad===1?'':'s'} ignored`:''}.</p>`;
     if(fresh.length){
       h += `<div style="max-height:34vh;overflow:auto;margin:8px 0">` + fresh.slice().sort((a,b)=>b.ts-a.ts).map(r=>`<div class="histrow"><span>${r.act.kind==='run'?'🏃':'🏊'} ${r.date}</span><span class="small">${escapeHtml(activitySummary(r.act))}</span></div>`).join('') + `</div>`;
-      h += `<p class="small">Imported activities fill your Progress charts. They don't move Couch to 5K or tick off plan slots — set your C25K position in Settings if needed.</p>
+      h += `<p class="small">Everything fills your Progress charts. Activities from ${prettyDate(garminTrackFrom())} onwards also tick off the matching plan slot (up to 2 days either side) and move Couch to 5K on for each run; older ones only feed the charts.</p>
         <div class="actionbar"><button class="secondary" onclick="closeModal()">Cancel</button><button class="primary" onclick="confirmGarminImport()">Import ${fresh.length}</button></div>`;
     } else h += `<p class="small">Nothing new to import.</p>`;
   }
   document.getElementById('modalBody').innerHTML = h;
   document.getElementById('modalOverlay').classList.add('show');
 }
+// Tick off the nearest pending planned slot of this kind: same day first, then up to two days earlier, then up to two days
+// later (never in the future). No pending slot => the activity becomes an "extra" on its own date.
+function markDoneNear(kind, date, sid){
+  const r=rotaState(); const t=parseD(date), today=parseD(todayStr());
+  for(const off of [0,-1,-2,1,2]){
+    if(t+off>today) continue;
+    const it = planForDate(fmtD(t+off)).items.find(x=>x.kind===kind && !r.done[x.key]);
+    if(it){ r.done[it.key]=sid; return; }
+  }
+  markDone(kind, null, date, sid);
+}
+function garminTrackFrom(){ return rotaState().trackFrom || ROTA_DEFAULT.anchorDate; }
 function confirmGarminImport(){
-  const recs = garminPending||[]; garminPending=null;
+  const recs = (garminPending||[]).slice().sort((a,b)=>a.ts-b.ts); garminPending=null;
+  const from = garminTrackFrom(); let ticked=0, c25kMoved=0;
   recs.forEach(r=>{
+    const tracked = r.date >= from;
+    if(tracked && r.act.kind==='run'){ const nx=c25kNext(); if(nx){ r.act.c25k=nx.label; c25kAdvance(); c25kMoved++; } }
     const record = {program:'rota', programLabel:'My Fortnight', week: rotaDayIdx(r.date)<7?1:2, deload:false, dayIndex:r.act.kind==='run'?0:1,
       dayLabel:r.act.kind==='run'?'Run':'Swim', date:r.date, savedAt:r.ts, sessionId:r.ts, user:state.name, activity:r.act,
       exercises:[{name:r.act.kind==='run'?'Run':'Swim', swappedFrom:null, baseName:null, sets:[{weight:'',reps:'',done:true}], notes:'ACT:'+JSON.stringify(r.act)}]};
     history.unshift(record);
+    if(tracked){ markDoneNear(r.act.kind, r.date, r.ts); ticked++; }
     if(state.sheetsUrl) pushToSheets(record);
   });
-  history.sort((a,b)=>(b.savedAt||0)-(a.savedAt||0)); saveHistory();
+  history.sort((a,b)=>(b.savedAt||0)-(a.savedAt||0)); saveHistory(); saveState();
   closeModal(); renderAll();
-  showToast(`Imported ${recs.length} activit${recs.length===1?'y':'ies'} from Garmin.`);
+  showToast(`Imported ${recs.length} activit${recs.length===1?'y':'ies'}${ticked?` — ${ticked} ticked off in your plan${c25kMoved?`, C25K moved on ${c25kMoved} run${c25kMoved===1?'':'s'}`:''}`:''}.`);
 }
 
 /* ---- PROGRESS: charts (inline SVG) ---- */
