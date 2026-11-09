@@ -272,6 +272,7 @@ a{color:var(--accent);}
   <button data-tab="settings" onclick="showTab('settings')"><span class="ic">⚙️</span>Settings</button>
 </div>
 
+<input type="file" id="garminFile" accept=".csv,text/csv" style="display:none" onchange="garminFileChosen(this)">
 <div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this) closeModal()">
   <div class="modal" id="modalBody"></div>
 </div>
@@ -1050,6 +1051,7 @@ function buildPPLBlocks(){
    A lower-biased (~45 min), B upper-biased (60-75 min), C legs & glutes (~45 min), U short upper + core (~25 min).
    Progression is per session TYPE: each time a type is completed it moves one "round" up an 8-step ladder
    (RPE 7 -> 8 -> 8 -> deload -> 8 -> 8 -> 9 -> deload), because gym sessions are not tied to calendar weeks. */
+const FG_SHORT = {A:'lower',B:'upper',C:'legs',U:'short'};
 const FG_TYPES = ["A","B","C","U"];
 const FG_LABELS = {A:"Gym A — lower-biased (~45 min)", B:"Gym B — upper-biased (60-75 min)", C:"Gym C — legs & glutes (~45 min)", U:"Gym U — upper + core (~25 min)"};
 const FG_BASE = {
@@ -1553,7 +1555,7 @@ function renderTrain(){
     ${['A','B'].map(id=>`<button class="gymchip ${gymId===id?'on':''}" onclick="setGym('${id}')">${escapeHtml(state.gyms[id].name)}</button>`).join('')}
     <button class="gymchip ${gymId?'':'on'}" onclick="setGym(null)">Not set</button></div>`;
   if(progId==='myfortnight'){
-    html += `<div class="gymbar"><span class="small">Session:</span>${FG_TYPES.map(t=>`<button class="gymchip ${t===FG_TYPES[dayIdx]?'on':''}" onclick="startGymSession('${t}')">Gym ${t}</button>`).join('')}</div>`;
+    html += `<div class="gymbar"><span class="small">Session:</span>${FG_TYPES.map(t=>`<button class="gymchip ${t===FG_TYPES[dayIdx]?'on':''}" onclick="startGymSession('${t}')" title="${escapeHtml(FG_LABELS[t])}">${t} · ${FG_SHORT[t]}</button>`).join('')}</div>`;
   }
   html += `<div class="card">
     <div class="sess-head">
@@ -2450,7 +2452,7 @@ function renderPlan(){
   } else {
     h += `<p style="margin:6px 0 2px"><b>Programme complete 🎉</b></p><p class="small">All 27 runs done. Runs are now free runs — log them from here and watch pace and distance on the Progress tab.</p><button class="secondary" style="width:100%" onclick="logModal('run')">Log a run</button>`;
   }
-  h += `</div>`;
+  h += `<button class="secondary" style="width:100%;margin-top:8px" onclick="document.getElementById('garminFile').click()">Import runs &amp; swims from Garmin CSV</button></div>`;
   document.getElementById('planContent').innerHTML = h;
 }
 function openDay(date){
@@ -2493,6 +2495,91 @@ function setC25kPos(){
   saveState(); renderPlan();
 }
 function setRoundCount(t,v){ const n=Math.max(0,Math.min(99,parseInt(v)||0)); rotaState().counts[t]=n; saveState(); renderTrain(); renderPlan(); }
+
+/* ---- Garmin Connect CSV import (Activities > Export CSV) ----
+   Imports Running / Treadmill Running (km) and Pool/Open Water Swim (metres). Other activity types (e.g. "Other" physio
+   sessions) are skipped. Imported rows are history records like manual logs, but they do NOT advance Couch to 5K or tick
+   plan slots. Re-importing is safe: a row is skipped if its timestamp id, or the same date+kind+distance+time, exists. */
+function parseCsv(text){
+  const rows=[]; let row=[], f='', q=false;
+  for(let i=0;i<text.length;i++){
+    const c=text[i];
+    if(q){ if(c==='"'){ if(text[i+1]==='"'){ f+='"'; i++; } else q=false; } else f+=c; }
+    else if(c==='"') q=true;
+    else if(c===','){ row.push(f); f=''; }
+    else if(c==='\n'||c==='\r'){ if(c==='\r'&&text[i+1]==='\n') i++; row.push(f); f=''; if(row.length>1||row[0]!=='') rows.push(row); row=[]; }
+    else f+=c;
+  }
+  if(f!==''||row.length){ row.push(f); if(row.length>1||row[0]!=='') rows.push(row); }
+  return rows;
+}
+function garminRecords(text){
+  const rows = parseCsv(String(text||'').replace(/^﻿/,''));
+  if(rows.length<2) return {error:'That file looks empty.'};
+  const head = rows[0].map(x=>x.trim()); const ix = n=> head.indexOf(n);
+  const iT=ix('Activity Type'), iD=ix('Date'), iDist=ix('Distance'), iTime=ix('Time'), iHr=ix('Avg HR');
+  if(iT<0||iD<0||iDist<0||iTime<0) return {error:'This doesn\'t look like a Garmin Connect activities export (missing Activity Type / Date / Distance / Time columns).'};
+  const out=[]; let skipped=0, bad=0;
+  rows.slice(1).forEach(r=>{
+    const type=(r[iT]||'').trim(); const kind = /swim/i.test(type) ? 'swim' : (/running/i.test(type) ? 'run' : null);
+    if(!kind){ skipped++; return; }
+    const m=/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2}):(\d{2})/.exec((r[iD]||'').trim());
+    const dist=parseFloat(String(r[iDist]||'').replace(/,/g,'')); const secs=parseDur(String(r[iTime]||'').replace(/\.\d+$/,''));
+    if(!m || !(dist>0) || !secs){ bad++; return; }
+    const hr=parseInt(r[iHr]); const ts=new Date(+m[1],+m[2]-1,+m[3],+m[4],+m[5],+m[6]).getTime();
+    const act={kind, secs, src:'garmin'};
+    if(kind==='run') act.distKm=Math.round(dist*100)/100; else act.distM=Math.round(dist);
+    if(hr>30&&hr<250) act.avgHr=hr;
+    if(/treadmill/i.test(type)) act.treadmill=true;
+    out.push({date:`${m[1]}-${m[2]}-${m[3]}`, ts, act});
+  });
+  return {recs:out, skipped, bad};
+}
+let garminPending = null;
+function garminDupe(rec){
+  const known = new Set(history.map(h=>h.sessionId));
+  if(known.has(rec.ts)) return true;
+  return history.some(h=>{ if(h.program!=='rota'||h.date!==rec.date) return false; const a=activityOf(h);
+    return a && a.kind===rec.act.kind && Math.abs((a.distKm||a.distM||0)-(rec.act.distKm||rec.act.distM||0))<0.011 && Math.abs((a.secs||0)-rec.act.secs)<=2; });
+}
+function garminFileChosen(input){
+  const file = input.files && input.files[0]; if(!file) return;
+  const rd = new FileReader();
+  rd.onload = ()=>{ input.value=''; openGarminPreview(String(rd.result||'')); };
+  rd.onerror = ()=>{ input.value=''; showToast('Couldn\'t read that file.'); };
+  rd.readAsText(file);
+}
+function openGarminPreview(text){
+  const res = garminRecords(text);
+  let h = `<button class="close" onclick="closeModal()">✕</button><h3>Import from Garmin</h3>`;
+  if(res.error){ h += `<p class="small">${escapeHtml(res.error)}</p>`; }
+  else {
+    const fresh = res.recs.filter(r=>!garminDupe(r)); const dup = res.recs.length - fresh.length;
+    garminPending = fresh;
+    const runs = fresh.filter(r=>r.act.kind==='run'), swims = fresh.filter(r=>r.act.kind==='swim');
+    h += `<p class="small">Found <b>${runs.length} run${runs.length===1?'':'s'}</b> and <b>${swims.length} swim${swims.length===1?'':'s'}</b> to add${dup?`, ${dup} already in the app`:''}${res.skipped?`, ${res.skipped} other activit${res.skipped===1?'y':'ies'} skipped (physio, gym and so on)`:''}${res.bad?`, ${res.bad} unreadable row${res.bad===1?'':'s'} ignored`:''}.</p>`;
+    if(fresh.length){
+      h += `<div style="max-height:34vh;overflow:auto;margin:8px 0">` + fresh.slice().sort((a,b)=>b.ts-a.ts).map(r=>`<div class="histrow"><span>${r.act.kind==='run'?'🏃':'🏊'} ${r.date}</span><span class="small">${escapeHtml(activitySummary(r.act))}</span></div>`).join('') + `</div>`;
+      h += `<p class="small">Imported activities fill your Progress charts. They don't move Couch to 5K or tick off plan slots — set your C25K position in Settings if needed.</p>
+        <div class="actionbar"><button class="secondary" onclick="closeModal()">Cancel</button><button class="primary" onclick="confirmGarminImport()">Import ${fresh.length}</button></div>`;
+    } else h += `<p class="small">Nothing new to import.</p>`;
+  }
+  document.getElementById('modalBody').innerHTML = h;
+  document.getElementById('modalOverlay').classList.add('show');
+}
+function confirmGarminImport(){
+  const recs = garminPending||[]; garminPending=null;
+  recs.forEach(r=>{
+    const record = {program:'rota', programLabel:'My Fortnight', week: rotaDayIdx(r.date)<7?1:2, deload:false, dayIndex:r.act.kind==='run'?0:1,
+      dayLabel:r.act.kind==='run'?'Run':'Swim', date:r.date, savedAt:r.ts, sessionId:r.ts, user:state.name, activity:r.act,
+      exercises:[{name:r.act.kind==='run'?'Run':'Swim', swappedFrom:null, baseName:null, sets:[{weight:'',reps:'',done:true}], notes:'ACT:'+JSON.stringify(r.act)}]};
+    history.unshift(record);
+    if(state.sheetsUrl) pushToSheets(record);
+  });
+  history.sort((a,b)=>(b.savedAt||0)-(a.savedAt||0)); saveHistory();
+  closeModal(); renderAll();
+  showToast(`Imported ${recs.length} activit${recs.length===1?'y':'ies'} from Garmin.`);
+}
 
 /* ---- PROGRESS: charts (inline SVG) ---- */
 function niceMax(v){ if(!(v>0)) return 1; const p=Math.pow(10,Math.floor(Math.log10(v))); const f=v/p; const n=f<=1?1:f<=2?2:f<=2.5?2.5:f<=5?5:10; return n*p; }
